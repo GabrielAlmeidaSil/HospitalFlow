@@ -1,10 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
+import { Inject } from '@angular/core';
+import { Auth } from '../../../../core/services/auth';
 
 @Component({
   imports: [
@@ -20,6 +22,8 @@ import { InputIconModule } from 'primeng/inputicon';
   templateUrl: './login.html'
 })
 export class Login {
+
+  private authService = inject(Auth)
 
   formulario = new FormGroup({
     email: new FormControl('', [
@@ -37,7 +41,20 @@ export class Login {
       return;
     }
 
-    console.log(this.formulario.value)
+    const dados = {
+      email: this.formulario.value.email!,
+      senha: this.formulario.value.senha!
+    }
+
+    this.authService.login(dados).subscribe({
+      next: (resposta) => {
+        console.log('Login realizado:', resposta);
+      },
+
+      error: (erro) => {
+        console.log('Erro no login:', erro)
+      }
+    });
   }
 
 }

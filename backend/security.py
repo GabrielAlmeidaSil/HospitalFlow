@@ -1,6 +1,8 @@
 from pwdlib import PasswordHash
 from datetime import datetime, timedelta, timezone
 import jwt
+from jwt.exceptions import InvalidTokenError
+from exceptions import TokenInvalido
 from config import settings
 
 password_hash = PasswordHash.recommended()
@@ -33,3 +35,17 @@ def criar_token_acesso(usuario_id: int) -> str:
     )
 
     return token
+
+
+def decodificar_token(token: str) -> dict:
+    try: 
+        dados = jwt.decode(
+            token,
+            settings.secret_key,
+            algorithms=[settings.algorithm]
+        )
+
+        return dados
+
+    except InvalidTokenError:
+        raise TokenInvalido()

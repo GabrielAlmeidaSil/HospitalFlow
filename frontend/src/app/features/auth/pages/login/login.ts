@@ -1,12 +1,12 @@
-import { Component, inject } from '@angular/core';
+import { Component, Inject, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
-import { Inject } from '@angular/core';
 import { Auth } from '../../../../core/services/auth';
+import { Router } from '@angular/router';
 
 @Component({
   imports: [
@@ -23,7 +23,8 @@ import { Auth } from '../../../../core/services/auth';
 })
 export class Login {
 
-  private authService = inject(Auth)
+  private authService = inject(Auth);
+  private router = inject(Router);
 
   formulario = new FormGroup({
     email: new FormControl('', [
@@ -48,7 +49,11 @@ export class Login {
 
     this.authService.login(dados).subscribe({
       next: (resposta) => {
-        console.log('Login realizado:', resposta);
+        this.authService.salvarToken(
+          resposta.access_token
+        );
+
+        this.router.navigate(['/dashboard']);
       },
 
       error: (erro) => {

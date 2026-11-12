@@ -7,3 +7,10 @@ export interface LoginResponse {
     access_token: string;
     token_type: string;
 }
+
+export interface UsuarioResponse {
+    id: number;
+    nome: string;
+    email: string;
+    funcao: string;
+}

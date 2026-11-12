@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from database import get_db
-from schemas.usuario import LoginUsuario, RespostaLogin
+from schemas.usuario import LoginUsuario, RespostaLogin, RespostaUsuario
 from services.usuario_service import autenticar_usuario_service
 from security import criar_token_acesso
+from dependencies import get_current_user
+from models.usuario import UsuarioDB
 
 router = APIRouter(
     prefix="/auth",
@@ -27,3 +29,8 @@ def autenticar_usuario(dados: LoginUsuario, db: Session = Depends(get_db)):
         "access_token": token,
         "token_type": "bearer"
     }
+
+
+@router.get("/me", response_model=RespostaUsuario)
+def usuario_atual(usuario: UsuarioDB = Depends(get_current_user)):
+    return usuario

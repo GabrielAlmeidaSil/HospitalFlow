@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from exceptions import EmailJaCadastrado, EmailOuSenhaInvalido
+from exceptions import EmailJaCadastrado, EmailOuSenhaInvalido, TokenInvalido
 from routes.usuario import router as usuario_router
 from routes.auth import router as auth_router
 
@@ -46,6 +46,18 @@ def credenciais_invalidas_handler(request: Request, exc: EmailOuSenhaInvalido):
         status_code=401,
         content={
             "detail": "Email ou senha inválidos"
+        }
+    )
+
+@app.exception_handler(TokenInvalido)
+def decodificar_token(request: Request, exc: TokenInvalido):
+    return JSONResponse(
+        status_code=401,
+        content={
+            "detail": "Token inválid"
+        },
+        headers={
+            "WWW-Authenticate": "Bearer"
         }
     )
 

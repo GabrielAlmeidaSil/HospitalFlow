@@ -3,3 +3,6 @@ class EmailJaCadastrado(Exception):
 
 class EmailOuSenhaInvalido(Exception):
     pass
+
+class TokenInvalido(Exception):
+    pass

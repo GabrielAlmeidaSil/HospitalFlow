@@ -1,1 +1,16 @@
-<p>dashboard works!</p>
+<section>
+    <div>
+        <h1 class="text-2xl md:text-3xl font-medium">Operações Hospitalares</h1>
+        <p class="text-gray-500 mt-1">Visão geral em tempo real da operação do hospital.</p>
+    </div>
+
+    <div>
+        <app-card-status></app-card-status>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+            <app-ocupacao-leitos></app-ocupacao-leitos>
+            <app-ocorrencias-recentes></app-ocorrencias-recentes>
+            <app-status-setores></app-status-setores>
+        </div>
+    </div>
+</section>

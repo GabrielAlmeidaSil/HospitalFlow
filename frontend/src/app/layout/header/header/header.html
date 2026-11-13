@@ -1,10 +1,23 @@
-<header class="flex justify-between items-center border-b border-gray-200 py-4 px-7">
-    <div class="flex items-center gap-2">
+<header class="flex justify-between items-center gap-4 border-b border-gray-200 py-4 px-4 md:px-7">
+    <div class="flex items-center gap-2 min-w-0">
         <i class="pi pi-building !text-2xl"></i>
-        <h1 class="text-xl font-medium">Hospital Santa Clara</h1>
+        <h1 class="text-lg md:text-xl font-medium truncate">Hospital Santa Clara</h1>
     </div>
 
     <div>
-        teste
+        <div class="flex items-center gap-4 md:gap-6 text-gray-500">
+            <p class="hidden lg:block whitespace-nowrap">Hoje, 26 de jan de 2026 10:24</p>
+
+            <i class="pi pi-bell text-xl"></i>
+
+            <div (click)="menu.toggle($event)" class="flex items-center gap-2 cursor-pointer p-1 rounded-full hover:bg-slate-100 transition-colors">
+                <i class="pi pi-user text-xl"></i>
+                <i class="pi pi-chevron-down text-xl text-slate-600"></i>
+            </div>
+
+            <div class="card flex justify-center">
+                <p-menu #menu [model]="items" [popup]="true" />
+            </div>
+        </div>
     </div>
 </header>

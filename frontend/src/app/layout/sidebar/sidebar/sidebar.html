@@ -1,12 +1,14 @@
-<div class="hidden lg:flex">
-    <aside class="p-6 w-fit">
+<div>
+    <aside class="p-6" [class.w-fit]="mostrarLogo()">
         <div class="flex flex-col">
-            <div class="flex items-center gap-2.5">
-                <img src="/logo-hospitalflow.png" alt="Logo do HospitalFlow" class="w-8 h-8">
-                <h1 class="text-2xl text-[#012059] font-bold">Hospital<span class="text-[#006CD7]">Flow</span></h1>
-            </div>
-        
-            <div class="mt-10">
+            @if (mostrarLogo()) {
+                <div class="flex items-center gap-2.5">
+                    <img src="/logo-hospitalflow.png" alt="Logo do HospitalFlow" class="w-8 h-8">
+                    <h1 class="text-2xl text-[#012059] font-bold">Hospital<span class="text-[#006CD7]">Flow</span></h1>
+                </div>
+            }
+
+            <div [class.mt-10]="mostrarLogo()">
                 <div>
                     <ul class="flex flex-col gap-1 -mx-3">
                         <li>

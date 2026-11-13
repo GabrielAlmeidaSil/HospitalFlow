@@ -5,18 +5,33 @@
     </div>
 
     <div>
-        <div class="flex items-center gap-4 md:gap-6 text-gray-500">
+        <div class="flex items-center gap-1 md:gap-6 text-gray-500">
             <p class="hidden lg:block whitespace-nowrap">Hoje, 26 de jan de 2026 10:24</p>
 
             <i class="pi pi-bell text-xl"></i>
 
-            <div (click)="menu.toggle($event)" class="flex items-center gap-2 cursor-pointer p-1 rounded-full hover:bg-slate-100 transition-colors">
+            <div (click)="menu.toggle($event)" class="hidden lg:flex items-center gap-2 cursor-pointer p-1 rounded-full hover:bg-slate-100 transition-colors">
                 <i class="pi pi-user text-xl"></i>
                 <i class="pi pi-chevron-down text-xl text-slate-600"></i>
             </div>
 
             <div class="card flex justify-center">
                 <p-menu #menu [model]="items" [popup]="true" />
+            </div>
+
+            <div class="flex lg:hidden">
+                <p-drawer [(visible)]="menuAberto" [pt]="drawerPt">
+                    <ng-template #header>
+                        <div class="flex items-center gap-2.5">
+                            <img src="/logo-hospitalflow.png" alt="Logo do HospitalFlow" class="w-8 h-8">
+                            <h1 class="text-2xl text-[#012059] font-bold">Hospital<span class="text-[#006CD7]">Flow</span></h1>
+                        </div>
+                    </ng-template>
+
+                    <app-sidebar [mostrarLogo]="false" (click)="menuAberto = false"></app-sidebar>
+                </p-drawer>
+
+                <p-button type="button" (click)="menuAberto = true" icon="pi pi-bars" styleClass="bg-white border-none text-black" />
             </div>
         </div>
     </div>

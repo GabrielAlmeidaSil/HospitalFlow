@@ -8,6 +8,8 @@ from alembic import context
 from database import Base
 from config import settings
 from models.usuario import UsuarioDB
+from models.leito import LeitoDB
+from models.setor import SetorDB
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

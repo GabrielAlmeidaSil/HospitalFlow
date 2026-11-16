@@ -1,9 +1,11 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from exceptions import EmailJaCadastrado, EmailOuSenhaInvalido, TokenInvalido
+from exceptions import EmailJaCadastrado, EmailOuSenhaInvalido, TokenInvalido, SetorJaExiste, CodigoLeitoJaExiste, SetorNaoEncontrado, SetorInativo
 from routes.usuario import router as usuario_router
 from routes.auth import router as auth_router
+from routes.setor import router as setor_router
+from routes.leito import router as leito_router
 
 app = FastAPI(
     title="HospitalFlow API",
@@ -61,7 +63,45 @@ def decodificar_token(request: Request, exc: TokenInvalido):
         }
     )
 
+@app.exception_handler(SetorJaExiste)
+def criar_setor(request: Request, exc: SetorJaExiste):
+    return JSONResponse(
+        status_code=409,
+        content={
+            "detail": "Setor já cadastrado"
+        }
+    )
+
+@app.exception_handler(CodigoLeitoJaExiste)
+def codigo_setor_existe(request: Request, exc: CodigoLeitoJaExiste):
+    return JSONResponse(
+        status_code=409,
+        content={
+            "detail": "Leito já cadastrado"
+        }
+    )
+
+@app.exception_handler(SetorNaoEncontrado)
+def setor_nao_encontrado(request: Request, exc: SetorNaoEncontrado):
+    return JSONResponse(
+        status_code=404,
+        content={
+            "detail": "Setor não encontrado"
+        }
+    )
+
+@app.exception_handler(SetorInativo)
+def setor_inativo(request: Request, exc: SetorInativo):
+    return JSONResponse(
+        status_code=400,
+        content={
+            "detail": "Não é possível cadastrar um setor inativo"
+        }
+    )
+
 
 
 app.include_router(usuario_router)
 app.include_router(auth_router)
+app.include_router(setor_router)
+app.include_router(leito_router)

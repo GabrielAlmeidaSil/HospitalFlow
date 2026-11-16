@@ -12,5 +12,13 @@ class RespostaLeito(BaseModel):
     status: str
     ativo: bool
     setor_id: int
+    setor: RespostaSetorResumo
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RespostaSetorResumo(BaseModel):
+    id: int
+    nome: str
 
     model_config = ConfigDict(from_attributes=True)

@@ -35,8 +35,37 @@ def criar_leito_service(db: Session, dados: CriarLeito):
     return novo_leito
 
 
-def listar_leitos_service(db: Session):
+def listar_leitos_service(
+        db: Session,
+        busca: str | None = None,
+        setor_id: int | None = None,
+        status: StatusLeito | None = None,
+        ativo: bool | None = None
+    ):
+
     comando = select(LeitoDB)
+
+    if busca:
+        comando = comando.where(
+            LeitoDB.codigo.ilike(
+                f"%{busca}%"
+            )
+        )
+
+    if setor_id is not None:
+        comando = comando.where(
+            LeitoDB.setor_id == setor_id
+        )
+
+    if status is not None:
+        comando = comando.where(
+            LeitoDB.status == status
+        )
+
+    if ativo is not None:
+        comando = comando.where(
+            LeitoDB.ativo == ativo
+        )
 
     lista_leitos = db.scalars(comando).all()
 

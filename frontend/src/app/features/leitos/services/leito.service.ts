@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { CriarLeitoRequest, LeitoResponse } from '../models/leito.models';
+import { CriarLeitoRequest, LeitoResponse, AtualizarLeitoRequest } from '../models/leito.models';
 import { Setor } from '../../setores/services/setor';
 
 @Injectable({
@@ -23,6 +23,20 @@ export class LeitoService {
     return this.http.post<LeitoResponse>(
       `${this.apiUrl}/`,
       dados
+    )
+  }
+
+  editar(id: number, dados: AtualizarLeitoRequest) {
+    return this.http.patch<LeitoResponse>(
+      `${this.apiUrl}/${id}`,
+      dados
+    )
+  }
+
+  alterarSituacao(id: number, ativo: boolean) {
+    return this.http.patch<LeitoResponse>(
+      `${this.apiUrl}/${id}/situacao`,
+      { ativo }
     )
   }
 }

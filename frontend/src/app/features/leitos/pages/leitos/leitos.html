@@ -1,4 +1,7 @@
 <section>
+    <p-toast />
+    <p-confirmdialog />
+
     <div class="flex items-center">
         <i class="pi pi-building p-2 bg-[#E5F4FD] text-[#046096] text-4xl rounded-xl"></i>
         <div class="flex flex-col ms-3">
@@ -96,7 +99,7 @@
 
         <div class="flex flex-col gap-1 flex-1 min-w-40">
             <label class="text-sm text-gray-600">Setor</label>
-            <p-select [options]="setores" [(ngModel)]="setorSelecionado" optionLabel="nome" class="w-full" />
+            <p-select [options]="setores()" [(ngModel)]="setorSelecionado" optionLabel="nome" class="w-full" />
         </div>
 
         <div class="flex flex-col gap-1 flex-1 min-w-40">
@@ -111,7 +114,33 @@
 
         <div class="flex gap-3 w-full sm:w-auto">
             <p-button label="Atualizar" icon="pi pi-refresh" [outlined]="true" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap" (onClick)="carregarLeitos()" />
-            <p-button label="Novo Leito" icon="pi pi-plus" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap bg-[#012059] border-[#012059]" />
+            <!-- <p-button label="Novo Leito" icon="pi pi-plus" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap bg-[#012059] border-[#012059]" /> -->
+
+            <div class="card flex justify-center">
+                <p-button  label="Novo Leito" icon="pi pi-plus" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap bg-[#012059] border-[#012059]" (click)="abrirCriacao()" />
+                <p-dialog [header]="leitoEmEdicao() ? 'Editar Leito' : 'Novo Leito'" [modal]="true" [(visible)]="visible" [style]="{ width: '25rem' }">
+                    <form [formGroup]="formLeito" (ngSubmit)="salvar()">
+                        <span class="p-text-secondary block mb-8">{{ leitoEmEdicao() ? 'Altere os dados do leito' : 'Crie um novo leito' }}</span>
+
+                        <div class="flex items-center gap-4 mb-4">
+                            <label for="codigo" class="font-semibold w-24">Código</label>
+                            <input pInputText id="codigo" formControlName="codigo" class="flex-auto" autocomplete="off" placeholder="UTI-01" />
+                        </div>
+
+                        <div class="flex items-center gap-4 mb-8">
+                            <label for="setor" class="font-semibold w-24">Setor</label>
+                            <div class="card flex justify-center">
+                                <p-select formControlName="setor_id" [options]="setores()" optionLabel="nome" optionValue="id" placeholder="Selecione um Setor" class="w-full md:w-56" />
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-2">
+                            <p-button label="Cancelar" severity="secondary" type="button" (onClick)="visible = false" />
+                            <p-button label="Salvar" type="submit" styleClass="bg-[#046096] text-[#E5F4FD] border-none" />
+                        </div>
+                    </form>
+                </p-dialog>
+            </div>
         </div>
     </div>
 
@@ -155,9 +184,30 @@
                     </td>
                     <td>
                         <div class="flex justify-center gap-2">
-                            <p-button icon="pi pi-eye" [outlined]="true" size="small" />
-                            <p-button icon="pi pi-pencil" [outlined]="true" size="small" />
-                            <p-button icon="pi pi-trash" [outlined]="true" severity="danger" size="small" />
+                            <p-button icon="pi pi-pencil" [outlined]="true" size="small" (onClick)="abrirEdicao(leito)" />
+                            @if (leito.ativo) {
+                                <p-button
+                                    icon="pi pi-ban"
+                                    severity="danger"
+                                    [outlined]="true"
+                                    size="small"
+                                    pTooltip="Desativar leito"
+                                    tooltipPosition="top"
+                                    [loading]="processandoId() === leito.id"
+                                    (onClick)="alterarSituacao(leito)"
+                                />
+                            } @else {
+                                <p-button
+                                    icon="pi pi-check"
+                                    severity="success"
+                                    [outlined]="true"
+                                    size="small"
+                                    pTooltip="Ativar leito"
+                                    tooltipPosition="top"
+                                    [loading]="processandoId() === leito.id"
+                                    (onClick)="alterarSituacao(leito)"
+                                />
+                            }
                         </div>
                     </td>
                 </tr>

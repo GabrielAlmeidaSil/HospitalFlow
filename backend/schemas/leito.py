@@ -3,7 +3,6 @@ from models.leito import StatusLeito
 
 class CriarLeito(BaseModel):
     codigo: str = Field(min_length=2, max_length=10)
-    status: StatusLeito = StatusLeito.disponivel
     setor_id: int = Field(gt=0)
 
 class RespostaLeito(BaseModel):
@@ -22,3 +21,12 @@ class RespostaSetorResumo(BaseModel):
     nome: str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class AtualizarLeito(BaseModel):
+    codigo: str | None = Field(default=None, min_length=2, max_length=10)
+    setor_id: int | None = Field(default=None, gt=0)
+
+
+class AlterarSituacaoLeito(BaseModel):
+    ativo: bool

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from exceptions import EmailJaCadastrado, EmailOuSenhaInvalido, TokenInvalido, SetorJaExiste, CodigoLeitoJaExiste, SetorNaoEncontrado, SetorInativo
+from exceptions import EmailJaCadastrado, EmailOuSenhaInvalido, TokenInvalido, SetorJaExiste, CodigoLeitoJaExiste, SetorNaoEncontrado, SetorInativo, LeitoNaoEncontrado, LeitoOcupado
 from routes.usuario import router as usuario_router
 from routes.auth import router as auth_router
 from routes.setor import router as setor_router
@@ -96,6 +96,24 @@ def setor_inativo(request: Request, exc: SetorInativo):
         status_code=400,
         content={
             "detail": "Não é possível cadastrar um setor inativo"
+        }
+    )
+
+@app.exception_handler(LeitoNaoEncontrado)
+def leito_nao_encontrado(request: Request, exc: LeitoNaoEncontrado):
+    return JSONResponse(
+        status_code=404,
+        content={
+            "detail": "Leito não encontrado"
+        }
+    )
+
+@app.exception_handler(LeitoOcupado)
+def leito_ocupado_handler(request: Request, exc: LeitoOcupado):
+    return JSONResponse(
+        status_code=409,
+        content={
+            "detail": "Não é possível desativar um leito ocupado."
         }
     )
 

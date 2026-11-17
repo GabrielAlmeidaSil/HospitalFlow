@@ -18,3 +18,9 @@ class SetorNaoEncontrado(Exception):
 
 class SetorInativo(Exception):
     pass
+
+class LeitoNaoEncontrado(Exception):
+    pass
+
+class LeitoOcupado(Exception):
+    pass

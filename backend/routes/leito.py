@@ -1,8 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends
-from models.leito import LeitoDB
-from schemas.leito import CriarLeito, RespostaLeito
-from services.leito_service import criar_leito_service, listar_leitos_service
+from schemas.leito import CriarLeito, RespostaLeito, AtualizarLeito, AlterarSituacaoLeito
+from services.leito_service import criar_leito_service, listar_leitos_service, atualizar_leito_service, alterar_situacao_leito_service
 from database import get_db
 
 router = APIRouter(
@@ -29,6 +28,29 @@ def listar_leitos(db: Session = Depends(get_db)):
     )
 
     return listar_leitos
+
+
+@router.patch("/{leito_id}", response_model=RespostaLeito)
+def atualizar_leito(leito_id: int, dados: AtualizarLeito, db: Session = Depends(get_db)):
+
+    leito_atualizado = atualizar_leito_service(
+        db=db,
+        leito_id=leito_id,
+        dados=dados
+    )
+
+    return leito_atualizado
+
+
+@router.patch("/{leito_id}/situacao", response_model=RespostaLeito)
+def alterar_situacao_leito(leito_id: int, dados: AlterarSituacaoLeito, db: Session = Depends(get_db)):
+    nova_situacao_leito = alterar_situacao_leito_service(
+        db=db,
+        leito_id=leito_id,
+        ativo=dados.ativo
+    )
+
+    return nova_situacao_leito
 
 
 

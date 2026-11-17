@@ -20,6 +20,10 @@ export interface LeitoResponse {
 
 export interface CriarLeitoRequest {
     codigo: string;
-    status: StatusLeito;
     setor_id: number;
+}
+
+export interface AtualizarLeitoRequest {
+    codigo?: string;
+    setor_id?: number;
 }

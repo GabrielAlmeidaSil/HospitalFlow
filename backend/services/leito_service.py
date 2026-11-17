@@ -1,9 +1,9 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from schemas.leito import CriarLeito, RespostaLeito
-from models.leito import LeitoDB
+from schemas.leito import CriarLeito, AtualizarLeito
+from models.leito import LeitoDB, StatusLeito
 from models.setor import SetorDB
-from exceptions import CodigoLeitoJaExiste, SetorNaoEncontrado, SetorInativo
+from exceptions import CodigoLeitoJaExiste, SetorNaoEncontrado, SetorInativo, LeitoNaoEncontrado, LeitoOcupado
 
 def criar_leito_service(db: Session, dados: CriarLeito):
     comando = select(LeitoDB).where(
@@ -25,7 +25,6 @@ def criar_leito_service(db: Session, dados: CriarLeito):
 
     novo_leito = LeitoDB(
         codigo=dados.codigo,
-        status=dados.status,
         setor_id=dados.setor_id
     )
 
@@ -42,3 +41,60 @@ def listar_leitos_service(db: Session):
     lista_leitos = db.scalars(comando).all()
 
     return lista_leitos
+
+
+def atualizar_leito_service(db: Session, leito_id: int, dados: AtualizarLeito):
+    leito = db.get(LeitoDB, leito_id)
+
+    if not leito:
+        raise LeitoNaoEncontrado()
+
+    leito_atualizacao = dados.model_dump(
+        exclude_unset=True,
+        exclude_none=True
+    )
+
+    if "setor_id" in leito_atualizacao:
+        setor = db.get(SetorDB, leito_atualizacao["setor_id"])
+
+        if not setor:
+            raise SetorNaoEncontrado()
+
+        if not setor.ativo:
+            raise SetorInativo()
+
+    if "codigo" in leito_atualizacao:
+        comando = select(LeitoDB).where(
+            LeitoDB.codigo == leito_atualizacao["codigo"],
+            LeitoDB.id != leito_id
+        )
+
+        codigo_existente = db.scalar(comando)
+
+        if codigo_existente:
+            raise CodigoLeitoJaExiste()
+
+    for campo, valor in leito_atualizacao.items():
+        setattr(leito, campo, valor)
+
+    db.commit()
+    db.refresh(leito)
+
+    return leito
+
+
+def alterar_situacao_leito_service(db: Session, leito_id: int, ativo: bool):
+    leito = db.get(LeitoDB, leito_id)
+
+    if not leito:
+        raise LeitoNaoEncontrado()
+
+    if not ativo and leito.status == StatusLeito.ocupado:
+        raise LeitoOcupado()
+
+    leito.ativo = ativo
+
+    db.commit()
+    db.refresh(leito)
+
+    return leito

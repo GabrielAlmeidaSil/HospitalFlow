@@ -28,7 +28,8 @@ class LeitoDB(Base):
         SQLEnum(
             StatusLeito,
             name="status_leito"
-        )
+        ),
+        default=StatusLeito.disponivel
     )
 
     ativo: Mapped[bool] = mapped_column(

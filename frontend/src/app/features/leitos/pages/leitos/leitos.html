@@ -1,6 +1,28 @@
 <section>
     <p-toast />
     <p-confirmdialog />
+    <p-dialog [header]="leitoEmEdicao() ? 'Editar Leito' : 'Novo Leito'" [modal]="true" [(visible)]="visible" [style]="{ width: '90vw', maxWidth: '25rem' }">
+        <form [formGroup]="formLeito" (ngSubmit)="salvar()">
+            <span class="block mb-8">{{ leitoEmEdicao() ? 'Altere os dados do leito' : 'Crie um novo leito' }}</span>
+
+            <div class="flex items-center gap-4 mb-4">
+                <label for="codigo" class="font-semibold w-24">Código</label>
+                <input pInputText id="codigo" formControlName="codigo" class="flex-auto" autocomplete="off" placeholder="UTI-01" />
+            </div>
+
+            <div class="flex items-center gap-4 mb-8">
+                <label for="setor" class="font-semibold w-24">Setor</label>
+                <div>
+                    <p-select formControlName="setor_id" [options]="setores()" optionLabel="nome" optionValue="id" placeholder="Selecione um Setor" class="w-full md:w-56" />
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <p-button label="Cancelar" severity="secondary" type="button" (onClick)="visible = false" />
+                <p-button label="Salvar" type="submit" styleClass="bg-[#046096] text-[#E5F4FD] border-none" />
+            </div>
+        </form>
+    </p-dialog>
 
     <div class="flex items-center">
         <i class="pi pi-building p-2 bg-[#E5F4FD] text-[#046096] text-4xl rounded-xl"></i>
@@ -20,7 +42,7 @@
                     <h3 class="font-medium">Total de Leitos</h3>
 
                     <div class="flex items-center gap-3">
-                        <h1 class="font-bold text-4xl mt-2 mb-1">{{ resumoLeitos().total }}</h1>
+                        <h1 class="font-bold text-4xl mt-2 mb-1">{{ resumo().total }}</h1>
                     </div>
                 </div>
             </div>
@@ -35,8 +57,8 @@
                     <h3 class="font-medium">Disponíveis</h3>
 
                     <div class="flex justify-between items-end gap-3">
-                        <h1 class="font-bold text-4xl mt-2 mb-1">{{ resumoLeitos().leitosDisponiveis }}</h1>
-                        <p class="bg-[#E4F9F7] text-[#0F966E] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1">{{ calcularPercentuais(resumoLeitos().leitosDisponiveis) }}%</p>
+                        <h1 class="font-bold text-4xl mt-2 mb-1">{{ resumo().disponiveis }}</h1>
+                        <p class="bg-[#E4F9F7] text-[#0F966E] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1">{{ calcularPercentuais(resumo().disponiveis) }}%</p>
                     </div>
                 </div>
             </div>
@@ -51,8 +73,8 @@
                     <h3 class="font-medium">Ocupados</h3>
 
                     <div class="flex justify-between items-end gap-3">
-                        <h1 class="font-bold text-4xl mt-2 mb-1">{{ resumoLeitos().leitosOcupados }}</h1>
-                        <p class="bg-[#E0F2FE] text-[#037BD1] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1">{{ calcularPercentuais(resumoLeitos().leitosOcupados) }}%</p>
+                        <h1 class="font-bold text-4xl mt-2 mb-1">{{ resumo().ocupados }}</h1>
+                        <p class="bg-[#E0F2FE] text-[#037BD1] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1">{{ calcularPercentuais(resumo().ocupados) }}%</p>
                     </div>
                 </div>
             </div>
@@ -67,8 +89,8 @@
                     <h3 class="font-medium">Em Higienização</h3>
 
                     <div class="flex justify-between items-end gap-3">
-                        <h1 class="font-bold text-4xl mt-2 mb-1">{{ resumoLeitos().leitosHigienizacao }}</h1>
-                        <p class="bg-[#FDF5E1] text-[#CE941B] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1">{{ calcularPercentuais(resumoLeitos().leitosHigienizacao) }}%</p>
+                        <h1 class="font-bold text-4xl mt-2 mb-1">{{ resumo().higienizacao }}</h1>
+                        <p class="bg-[#FDF5E1] text-[#CE941B] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1">{{ calcularPercentuais(resumo().higienizacao) }}%</p>
                     </div>
                 </div>
             </div>
@@ -83,8 +105,8 @@
                     <h3 class="font-medium">Em Manutenção</h3>
 
                     <div class="flex justify-between items-end gap-3">
-                        <h1 class="font-bold text-4xl mt-2 mb-1">{{ resumoLeitos().leitosManutencao }}</h1>
-                        <p class="bg-[#EEE3FD] text-[#5F13AE] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1">{{ calcularPercentuais(resumoLeitos().leitosManutencao) }}%</p>
+                        <h1 class="font-bold text-4xl mt-2 mb-1">{{ resumo().manutencao }}</h1>
+                        <p class="bg-[#EEE3FD] text-[#5F13AE] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1">{{ calcularPercentuais(resumo().manutencao) }}%</p>
                     </div>
                 </div>
             </div>
@@ -94,58 +116,36 @@
     <div class="flex flex-wrap items-end gap-4 mb-6">
         <p-iconfield iconPosition="left" class="flex-1 min-w-56">
             <p-inputicon class="pi pi-search" />
-            <input type="text" pInputText placeholder="Buscar por código do leito..." class="w-full" [ngModel]="busca()" (ngModelChange)="busca.set($event)" />
+            <input type="text" pInputText placeholder="Buscar por código do leito..." class="w-full" [ngModel]="busca()" (ngModelChange)="busca.set($event)" (keyup.enter)="carregarLeitos()" />
         </p-iconfield>
 
         <div class="flex flex-col gap-1 flex-1 min-w-40">
             <label class="text-sm text-gray-600">Setor</label>
-            <p-select [options]="setores()" optionLabel="nome" optionValue="id" [ngModel]="setorSelecionado()" (ngModelChange)="setorSelecionado.set($event)" placeholder="Todos os setores" [showClear]="true" class="w-full" />
+            <p-select [options]="setores()" optionLabel="nome" optionValue="id" [ngModel]="setorSelecionado()" (ngModelChange)="setorSelecionado.set($event); carregarLeitos()" placeholder="Todos os setores" [showClear]="true" class="w-full" />
         </div>
 
         <div class="flex flex-col gap-1 flex-1 min-w-40">
             <label class="text-sm text-gray-600">Status</label>
-            <p-select [options]="statusOpcoes" optionLabel="nome" optionValue="valor" [ngModel]="statusSelecionado()" (ngModelChange)="statusSelecionado.set($event)" optionLabel="nome" class="w-full" />
+            <p-select [options]="statusOpcoes" optionLabel="nome" optionValue="valor" [ngModel]="statusSelecionado()" (ngModelChange)="statusSelecionado.set($event); carregarLeitos()" class="w-full" />
         </div>
 
         <div class="flex flex-col gap-1 flex-1 min-w-40">
             <label class="text-sm text-gray-600">Situação</label>
-            <p-select [options]="situacaoOpcoes" optionLabel="nome" optionValue="valor"  [ngModel]="situacaoSelecionada()" (ngModelChange)="situacaoSelecionada.set($event)" class="w-full" />
+            <p-select [options]="situacaoOpcoes" optionLabel="nome" optionValue="valor"  [ngModel]="situacaoSelecionada()" (ngModelChange)="situacaoSelecionada.set($event); carregarLeitos()" class="w-full" />
         </div>
 
         <div class="flex gap-3 w-full sm:w-auto">
-            <p-button label="Atualizar" icon="pi pi-refresh" [outlined]="true" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap" (onClick)="carregarLeitos()" />
+            <p-button label="Atualizar" icon="pi pi-refresh" [outlined]="true" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap" (onClick)="atualizarDados()" />
 
-            <div class="card flex justify-center">
-                <p-button  label="Novo Leito" icon="pi pi-plus" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap bg-[#012059] border-[#012059]" (click)="abrirCriacao()" />
-                <p-dialog [header]="leitoEmEdicao() ? 'Editar Leito' : 'Novo Leito'" [modal]="true" [(visible)]="visible" [style]="{ width: '25rem' }">
-                    <form [formGroup]="formLeito" (ngSubmit)="salvar()">
-                        <span class="p-text-secondary block mb-8">{{ leitoEmEdicao() ? 'Altere os dados do leito' : 'Crie um novo leito' }}</span>
-
-                        <div class="flex items-center gap-4 mb-4">
-                            <label for="codigo" class="font-semibold w-24">Código</label>
-                            <input pInputText id="codigo" formControlName="codigo" class="flex-auto" autocomplete="off" placeholder="UTI-01" />
-                        </div>
-
-                        <div class="flex items-center gap-4 mb-8">
-                            <label for="setor" class="font-semibold w-24">Setor</label>
-                            <div class="card flex justify-center">
-                                <p-select formControlName="setor_id" [options]="setores()" optionLabel="nome" optionValue="id" placeholder="Selecione um Setor" class="w-full md:w-56" />
-                            </div>
-                        </div>
-
-                        <div class="flex justify-end gap-2">
-                            <p-button label="Cancelar" severity="secondary" type="button" (onClick)="visible = false" />
-                            <p-button label="Salvar" type="submit" styleClass="bg-[#046096] text-[#E5F4FD] border-none" />
-                        </div>
-                    </form>
-                </p-dialog>
+            <div>
+                <p-button  label="Novo Leito" icon="pi pi-plus" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap bg-[#012059] border-[#012059]" (onClick)="abrirCriacao()" />
             </div>
         </div>
     </div>
 
     <div class="border rounded-xl border-gray-200 overflow-hidden">
         <p-table
-            [value]="leitosFiltrados()"
+            [value]="leitos()"
             [paginator]="true"
             [rows]="8"
             [rowsPerPageOptions]="[8, 16, 24]"

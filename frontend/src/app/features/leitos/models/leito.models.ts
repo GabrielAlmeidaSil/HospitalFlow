@@ -27,3 +27,18 @@ export interface AtualizarLeitoRequest {
     codigo?: string;
     setor_id?: number;
 }
+
+export interface FiltrosLeito {
+    busca?: string;
+    setor_id?: number;
+    status?: StatusLeito;
+    ativo?: boolean;
+}
+
+export interface ResumoLeitosResponse {
+  total: number;
+  disponiveis: number;
+  ocupados: number;
+  higienizacao: number;
+  manutencao: number;
+}

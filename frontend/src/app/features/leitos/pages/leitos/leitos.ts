@@ -1,31 +1,29 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { LeitoService } from '../../services/leito.service';
-import { CriarLeitoRequest, LeitoResponse, StatusLeito } from '../../models/leito.models';
 import { FormControl, FormGroup, FormsModule, Validators, ReactiveFormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
+
 import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { Setor } from '../../../setores/services/setor';
-import { SetorResponse } from '../../../setores/models/setor.models';
 import { DialogModule } from 'primeng/dialog';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { finalize } from 'rxjs';
-import { computed } from '@angular/core';
 
-interface Filtro {
-  nome: string;
-}
+import { LeitoService } from '../../services/leito.service';
+import { CriarLeitoRequest, FiltrosLeito, LeitoResponse, ResumoLeitosResponse, StatusLeito } from '../../models/leito.models';
+import { Setor } from '../../../setores/services/setor';
+import { SetorResponse } from '../../../setores/models/setor.models';
 
 @Component({
   selector: 'app-leitos',
   imports: [
     FormsModule,
+    ReactiveFormsModule,
     ButtonModule,
     IconFieldModule,
     InputIconModule,
@@ -33,152 +31,57 @@ interface Filtro {
     SelectModule,
     TableModule,
     DialogModule,
-    ReactiveFormsModule,
     ToastModule,
     ConfirmDialogModule,
     TooltipModule
-],
+  ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './leitos.html',
   styleUrl: './leitos.scss',
 })
 export class Leitos implements OnInit {
+  // services usados na tela
   private leitoService = inject(LeitoService);
-  private setorService = inject(Setor)
+  private setorService = inject(Setor);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
 
-  busca = signal('');
-  setorSelecionado = signal<number | null>(null)
-  statusSelecionado = signal<StatusLeito | null>(null)
-  situacaoSelecionada = signal<boolean | null>(null)
+  // dados que vem da API
+  leitos = signal<LeitoResponse[]>([]);
+  setores = signal<SetorResponse[]>([]);
+  resumo = signal<ResumoLeitosResponse>({
+    total: 0,
+    disponiveis: 0,
+    ocupados: 0,
+    higienizacao: 0,
+    manutencao: 0
+  });
 
+  carregando = signal(false);
+  erro = signal('');
+
+  // valores escolhidos nos filtros
+  busca = signal('');
+  setorSelecionado = signal<number | null>(null);
+  statusSelecionado = signal<StatusLeito | null>(null);
+  situacaoSelecionada = signal<boolean | null>(null);
+
+  // opcoes dos selects de filtro
   statusOpcoes = [
-    {
-      nome: 'Todos os status',
-      valor: null
-    },
-    {
-      nome: 'Disponível',
-      valor: 'disponivel'
-    },
-    {
-      nome: 'Ocupado',
-      valor: 'ocupado'
-    },
-    {
-      nome: 'Higienização',
-      valor: 'higienizacao'
-    },
-    {
-      nome: 'Manutenção',
-      valor: 'manutencao'
-    }
+    { nome: 'Todos os status', valor: null },
+    { nome: 'Disponível', valor: 'disponivel' },
+    { nome: 'Ocupado', valor: 'ocupado' },
+    { nome: 'Higienização', valor: 'higienizacao' },
+    { nome: 'Manutenção', valor: 'manutencao' }
   ];
 
   situacaoOpcoes = [
-    {
-      nome: 'Todos',
-      valor: null
-    },
-    {
-      nome: 'Ativos',
-      valor: true
-    },
-    {
-      nome: 'Inativos',
-      valor: false
-    }
+    { nome: 'Todos', valor: null },
+    { nome: 'Ativos', valor: true },
+    { nome: 'Inativos', valor: false }
   ];
 
-  leitosFiltrados = computed(() => {
-
-    let lista = this.leitos();
-    
-    const busca = this.busca().trim().toLowerCase();
-
-    const setorId = this.setorSelecionado();
-
-    const status = this.statusSelecionado();
-
-    const situacao = this.situacaoSelecionada();
-
-    if(busca) {
-      lista = lista.filter(leito => 
-        leito.codigo.toLocaleLowerCase().includes(busca)
-      );
-    }
-
-    if (setorId !== null) {
-      lista = lista.filter(leito =>
-        leito.setor.id === setorId
-      );
-    }
-
-    if (status !== null) {
-      lista = lista.filter(leito =>
-        leito.status === status
-      )
-    }
-
-    if (situacao !== null) {
-      lista = lista.filter(leito =>
-        leito.ativo === situacao
-      )
-    }
-
-    return lista;
-  });
-
-
-  resumoLeitos = computed(() => {
-    const leitosAtivos = this.leitos().filter(leito => leito.ativo);
-
-    const total = leitosAtivos.length;
-
-    const leitosDisponiveis = leitosAtivos.filter(leito => leito.status === 'disponivel').length;
-      
-    const leitosOcupados = leitosAtivos.filter(leito => leito.status === 'ocupado').length;
-
-    const leitosHigienizacao = leitosAtivos.filter(leito => leito.status === 'higienizacao').length;
-
-    const leitosManutencao = leitosAtivos.filter(leito => leito.status === 'manutencao').length;
-
-    return {
-      total,
-      leitosDisponiveis,
-      leitosOcupados,
-      leitosHigienizacao,
-      leitosManutencao
-    }
-  });
-
-
-  calcularPercentuais(valor: number): number {
-    const total = this.resumoLeitos().total;
-
-    if (total === 0) {
-      return 0;
-    }
-
-    return Math.round(
-      (valor / total) * 100
-    );
-  }
-
-
-  leitos = signal<LeitoResponse[]>([]);
-
-  carregando = signal(false);
-
-  erro = signal('')
-
-  setores = signal<SetorResponse[]>([]);
-
-  status: Filtro[] = [];
-
-  situacoes: Filtro[] = [];
-
+  // texto e cor de cada status na tabela
   nomeStatus: any = {
     disponivel: 'Disponível',
     ocupado: 'Ocupado',
@@ -193,61 +96,9 @@ export class Leitos implements OnInit {
     manutencao: 'bg-[#EEE3FD] text-[#5F13AE]'
   };
 
+  // modal de criar/editar leito
   visible: boolean = false;
-
-  ngOnInit(): void {
-    this.carregarLeitos();
-    this.carregarSetores();
-
-    this.status = [
-      { nome: 'Todos os status' },
-      { nome: 'Disponível' },
-      { nome: 'Ocupado' },
-      { nome: 'Higienização' },
-      { nome: 'Manutenção' }
-    ];
-
-
-    this.situacoes = [
-      { nome: 'Todos' },
-      { nome: 'Ativos' },
-      { nome: 'Inativos' }
-    ];
-
-  }
-
-  carregarLeitos() {
-    this.carregando.set(true);
-    this.erro.set('');
-
-    this.leitoService.listar().subscribe({
-      next: (leitos) => {
-        this.leitos.set(leitos);
-        this.carregando.set(false);
-      },
-
-      error: (erro) => {
-        console.error(erro)
-
-        this.erro.set("Não foi possível carregar os leitos.");
-        this.carregando.set(false);
-      }
-
-    });
-  }
-
-
-  carregarSetores() {
-    this.setorService.listarSetores().subscribe({
-      next: (setores) => {
-        this.setores.set(setores)
-      },
-      error: (erro) => {
-        console.error('Erro ao carregar setores: ', erro)
-      }
-    })
-  }
-
+  leitoEmEdicao = signal<LeitoResponse | null>(null);
 
   formLeito = new FormGroup({
     codigo: new FormControl('', {
@@ -259,26 +110,113 @@ export class Leitos implements OnInit {
       ]
     }),
 
-    setor_id: new FormControl<number | null>(
-      null,
-      Validators.required
-    )
+    setor_id: new FormControl<number | null>(null, Validators.required)
   });
 
-  leitoEmEdicao = signal<LeitoResponse | null>(null)
+  // id do leito que esta sendo ativado/desativado (loading do botao)
+  processandoId = signal<number | null>(null);
 
+  ngOnInit(): void {
+    this.carregarSetores();
+    this.atualizarDados();
+  }
+
+  // recarrega a tabela e os cards
+  atualizarDados() {
+    this.carregarLeitos();
+    this.carregarResumo();
+  }
+
+  // busca os leitos na API mandando so os filtros preenchidos
+  carregarLeitos() {
+    this.carregando.set(true);
+    this.erro.set('');
+
+    const filtros: FiltrosLeito = {};
+
+    const busca = this.busca().trim();
+    if (busca) {
+      filtros.busca = busca;
+    }
+
+    const setorId = this.setorSelecionado();
+    if (setorId !== null) {
+      filtros.setor_id = setorId;
+    }
+
+    const status = this.statusSelecionado();
+    if (status !== null) {
+      filtros.status = status;
+    }
+
+    const situacao = this.situacaoSelecionada();
+    if (situacao !== null) {
+      filtros.ativo = situacao;
+    }
+
+    this.leitoService.listar(filtros).subscribe({
+      next: (leitos) => {
+        this.leitos.set(leitos);
+        this.carregando.set(false);
+      },
+      error: (erro) => {
+        console.error(erro);
+        this.erro.set('Não foi possível carregar os leitos.');
+        this.carregando.set(false);
+      }
+    });
+  }
+
+  // busca os setores para os selects
+  carregarSetores() {
+    this.setorService.listarSetores().subscribe({
+      next: (setores) => {
+        this.setores.set(setores);
+      },
+      error: (erro) => {
+        console.error('Erro ao carregar setores: ', erro);
+      }
+    });
+  }
+
+  // busca os numeros dos cards
+  carregarResumo() {
+    this.leitoService.resumo().subscribe({
+      next: (resumo) => {
+        this.resumo.set(resumo);
+      },
+      error: (erro) => {
+        console.error('Erro ao carregar resumo dos leitos: ', erro);
+      }
+    });
+  }
+
+  // porcentagem de cada card em relacao ao total
+  calcularPercentuais(valor: number): number {
+    const total = this.resumo().total;
+
+    if (total === 0) {
+      return 0;
+    }
+
+    return Math.round((valor / total) * 100);
+  }
+
+  // abre o modal vazio para cadastrar
   abrirCriacao() {
-    this.leitoEmEdicao.set(null)
-    this.formLeito.reset({codigo: '', setor_id: null});
+    this.leitoEmEdicao.set(null);
+    this.formLeito.reset({ codigo: '', setor_id: null });
     this.visible = true;
   }
 
+  // abre o modal preenchido com o leito escolhido
   abrirEdicao(leito: LeitoResponse) {
     this.leitoEmEdicao.set(leito);
     this.formLeito.reset({ codigo: leito.codigo, setor_id: leito.setor_id });
     this.visible = true;
   }
 
+  // cria ou edita, dependendo se tem leito em edicao
   salvar() {
     if (this.formLeito.invalid) {
       this.formLeito.markAllAsTouched();
@@ -298,57 +236,56 @@ export class Leitos implements OnInit {
     requisicao.subscribe({
       next: () => {
         this.visible = false;
-        this.carregarLeitos();
+        this.atualizarDados();
       },
       error: (erro) => console.error(erro)
     });
+  }
+
+  // ativar vai direto, desativar pede confirmacao antes
+  alterarSituacao(leito: LeitoResponse) {
+    if (!leito.ativo) {
+      this.enviarAlteracaoSituacao(leito, true);
+      return;
     }
 
-    processandoId = signal<number | null>(null);
+    this.confirmationService.confirm({
+      header: 'Desativar leito',
+      message: `Deseja realmente desativar o leito ${leito.codigo}?`,
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Desativar',
+      rejectLabel: 'Cancelar',
+      acceptButtonProps: { severity: 'danger' },
+      rejectButtonProps: { severity: 'secondary', outlined: true },
+      accept: () => this.enviarAlteracaoSituacao(leito, false)
+    });
+  }
 
-    alterarSituacao(leito: LeitoResponse) {
-      if (!leito.ativo) {
-        this.enviarAlteracaoSituacao(leito, true);
-        return;
-      }
+  // chama a API e mostra o toast de sucesso ou erro
+  private enviarAlteracaoSituacao(leito: LeitoResponse, ativo: boolean) {
+    this.processandoId.set(leito.id);
 
-      this.confirmationService.confirm({
-        header: 'Desativar leito',
-        message: `Deseja realmente desativar o leito ${leito.codigo}?`,
-        icon: 'pi pi-exclamation-triangle',
-        acceptLabel: 'Desativar',
-        rejectLabel: 'Cancelar',
-        acceptButtonProps: { severity: 'danger' },
-        rejectButtonProps: { severity: 'secondary', outlined: true },
-        accept: () => this.enviarAlteracaoSituacao(leito, false)
+    this.leitoService.alterarSituacao(leito.id, ativo)
+      .pipe(finalize(() => this.processandoId.set(null)))
+      .subscribe({
+        next: (atualizado) => {
+          this.atualizarDados();
+
+          const acao = atualizado.ativo ? 'ativado' : 'desativado';
+
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Sucesso',
+            detail: `Leito ${atualizado.codigo} ${acao}.`
+          });
+        },
+        error: (erro) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: erro.error?.detail ?? 'Não foi possível alterar a situação do leito.'
+          });
+        }
       });
-    }
-
-    private enviarAlteracaoSituacao(leito: LeitoResponse, ativo: boolean) {
-      this.processandoId.set(leito.id);
-
-      this.leitoService.alterarSituacao(leito.id, ativo)
-        .pipe(finalize(() => this.processandoId.set(null)))
-        .subscribe({
-          next: (atualizado) => {
-            this.leitos.update(lista =>
-              lista.map(l => l.id === atualizado.id ? atualizado : l)
-            );
-
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Sucesso',
-              detail: `Leito ${atualizado.codigo} ${atualizado.ativo ? 'ativado' : 'desativado'}.`
-            });
-          },
-
-          error: (erro) => {
-            this.messageService.add({
-              severity: 'error',
-              summary: 'Erro',
-              detail: erro.error?.detail ?? 'Não foi possível alterar a situação do leito.'
-            });
-          }
-        });
-    }
+  }
 }

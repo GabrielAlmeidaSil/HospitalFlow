@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 from schemas.leito import CriarLeito, AtualizarLeito
 from models.leito import LeitoDB, StatusLeito
@@ -127,3 +127,47 @@ def alterar_situacao_leito_service(db: Session, leito_id: int, ativo: bool):
     db.refresh(leito)
 
     return leito
+
+
+def resumo_leitos_service(db: Session):
+    comando = select(
+        func.count(LeitoDB.id)
+        .filter(
+            LeitoDB.ativo.is_(True)
+        )
+        .label("total"),
+
+        func.count(LeitoDB.id)
+        .filter(
+            LeitoDB.ativo.is_(True),
+            LeitoDB.status == StatusLeito.disponivel
+        )
+        .label("disponiveis"),
+
+        func.count(LeitoDB.id)
+        .filter(
+            LeitoDB.ativo.is_(True),
+            LeitoDB.status == StatusLeito.ocupado
+        )
+        .label("ocupados"),
+
+        func.count(LeitoDB.id)
+        .filter(
+            LeitoDB.ativo.is_(True),
+            LeitoDB.status == StatusLeito.higienizacao
+        )
+        .label("higienizacao"),
+
+        func.count(LeitoDB.id)
+        .filter(
+            LeitoDB.ativo.is_(True),
+            LeitoDB.status == StatusLeito.manutencao
+        )
+        .label("manutencao")
+    )
+
+    resultado = db.execute(
+        comando
+    ).mappings().one()
+
+    return resultado

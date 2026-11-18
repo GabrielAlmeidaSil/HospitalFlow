@@ -1,1 +1,151 @@
-<p>pacientes works!</p>
+<section>
+
+    <!-- INTRODUÇÃO PACIENTES -->
+    <div class="flex items-center">
+        <i class="pi pi-users p-2 bg-[#E5F4FD] text-[#046096] text-4xl rounded-xl"></i>
+        <div class="flex flex-col ms-3">
+            <h1 class="text-2xl md:text-3xl font-medium">Pacientes</h1>
+            <p class="text-gray-500 mt-1">Gerencie os pacientes cadastrados, acompanhe informações principais e mantenha os registros organizados.</p>
+        </div>
+    </div>
+
+    <!-- CARDS PACIENTES -->
+     <div class="grid grid-cols-2 md:grid-cols-2 2xl:grid-cols-3 my-6 md:my-10 gap-4">
+        <div class="border rounded-xl border-gray-200 col-span-2 2xl:col-span-1">
+            <div class="flex flex-col sm:flex-row p-3">
+                <div>
+                    <i class="pi pi-users p-2 bg-[#E5F4FD] text-[#046096] text-4xl rounded-xl"></i>
+                </div>
+                <div class="mt-3 sm:mt-0 sm:ms-4">
+                    <h3 class="font-medium">Total de Pacientes</h3>
+
+                    <div class="flex items-center gap-3">
+                        <h1 class="font-bold text-4xl mt-2 mb-1">1.248</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PACIENTES ATIVOS -->
+        <div class="border rounded-xl border-gray-200">
+            <div class="flex flex-col sm:flex-row p-3">
+                <div>
+                    <i class="pi pi-check p-2 bg-[#E4F9F7] text-[#0F966E] text-4xl rounded-xl"></i>
+                </div>
+                <div class="mt-3 sm:mt-0 sm:ms-4">
+                    <h3 class="font-medium">Ativos</h3>
+
+                    <div class="flex justify-between items-end gap-3">
+                        <h1 class="font-bold text-4xl mt-2 mb-1">1.126</h1>
+                        <p class="bg-[#E4F9F7] text-[#0F966E] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1">90%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PACIENTES INATIVOS -->
+        <div class="border rounded-xl border-gray-200">
+            <div class="flex flex-col sm:flex-row p-3">
+                <div>
+                    <i class="pi pi-times p-2 bg-[#FDE0E0] text-[#DB1312] text-4xl rounded-xl"></i>
+                </div>
+                <div class="mt-3 sm:mt-0 sm:ms-4">
+                    <h3 class="font-medium">Inativos</h3>
+
+                    <div class="flex justify-between items-end gap-3">
+                        <h1 class="font-bold text-4xl mt-2 mb-1">122</h1>
+                        <p class="bg-[#FDE0E0] text-[#DB1312] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1">10%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- FILTROS -->
+    <div class="flex flex-wrap items-end gap-4 mb-6">
+        <p-iconfield iconPosition="left" class="flex-1 min-w-56">
+            <p-inputicon class="pi pi-search" />
+            <input type="text" pInputText placeholder="Buscar por nome ou CPF..." class="w-full" [ngModel]="busca()" (ngModelChange)="busca.set($event)" />
+        </p-iconfield>
+
+        <div class="flex flex-col gap-1 flex-1 min-w-40">
+            <label class="text-sm text-gray-600">Setor</label>
+            <p-select [options]="setores" optionLabel="nome" optionValue="id" [ngModel]="setorSelecionado()" (ngModelChange)="setorSelecionado.set($event)" placeholder="Todos os setores" [showClear]="true" class="w-full" />
+        </div>
+
+        <div class="flex flex-col gap-1 flex-1 min-w-40">
+            <label class="text-sm text-gray-600">Status</label>
+            <p-select [options]="statusOpcoes" optionLabel="nome" optionValue="valor" [ngModel]="statusSelecionado()" (ngModelChange)="statusSelecionado.set($event)" class="w-full" />
+        </div>
+
+        <div class="flex flex-col gap-1 flex-1 min-w-40">
+            <label class="text-sm text-gray-600">Situação</label>
+            <p-select [options]="situacaoOpcoes" optionLabel="nome" optionValue="valor" [ngModel]="situacaoSelecionada()" (ngModelChange)="situacaoSelecionada.set($event)" class="w-full" />
+        </div>
+
+        <div class="flex gap-3 w-full sm:w-auto">
+            <p-button label="Atualizar" icon="pi pi-refresh" [outlined]="true" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap" />
+            <p-button label="Novo Paciente" icon="pi pi-plus" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap bg-[#012059] border-[#012059]" />
+        </div>
+    </div>
+
+
+    <!-- TABELAS -->
+    <div class="border rounded-xl border-gray-200 overflow-hidden">
+        <p-table
+            [value]="pacientes()"
+            [paginator]="true"
+            [rows]="8"
+            [rowsPerPageOptions]="[8, 16, 24]"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Exibindo {first} a {last} de {totalRecords} pacientes"
+            [tableStyle]="{ 'min-width': '60rem' }"
+        >
+            <ng-template #header>
+                <tr>
+                    <th pSortableColumn="nome" class="bg-[#F1F6FC]">Nome <p-sortIcon field="nome" /></th>
+                    <th class="bg-[#F1F6FC]">CPF</th>
+                    <th pSortableColumn="setor.nome" class="bg-[#F1F6FC]">Setor <p-sortIcon field="setor.nome" /></th>
+                    <th pSortableColumn="leito" class="bg-[#F1F6FC]">Leito <p-sortIcon field="leito" /></th>
+                    <th pSortableColumn="status" class="bg-[#F1F6FC]">Status <p-sortIcon field="status" /></th>
+                    <th pSortableColumn="ativo" class="bg-[#F1F6FC]">Ativo <p-sortIcon field="ativo" /></th>
+                    <th class="bg-[#F1F6FC] text-center">Ações</th>
+                </tr>
+            </ng-template>
+
+            <ng-template #body let-paciente>
+                <tr>
+                    <td class="font-semibold">{{ paciente.nome }}</td>
+                    <td class="text-gray-600">{{ paciente.cpf }}</td>
+                    <td>
+                        <i class="pi pi-building text-gray-500 me-2"></i>{{ paciente.setor.nome }}
+                    </td>
+                    <td>{{ paciente.leito }}</td>
+                    <td>
+                        <span class="text-sm font-semibold rounded-full px-2.5 py-1" [class]="corStatus[paciente.status]">
+                            <i class="pi pi-circle-fill text-[0.5rem] me-1"></i>{{ nomeStatus[paciente.status] }}
+                        </span>
+                    </td>
+                    <td>
+                        @if (paciente.ativo) {
+                            <i class="pi pi-check-circle text-[#0F966E] me-2"></i>Sim
+                        } @else {
+                            <i class="pi pi-times-circle text-gray-400 me-2"></i>Não
+                        }
+                    </td>
+                    <td>
+                        <div class="flex justify-center gap-2">
+                            <p-button icon="pi pi-pencil" [outlined]="true" size="small" />
+                            @if (paciente.ativo) {
+                                <p-button icon="pi pi-ban" severity="danger" [outlined]="true" size="small" />
+                            } @else {
+                                <p-button icon="pi pi-check" severity="success" [outlined]="true" size="small" />
+                            }
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</section>

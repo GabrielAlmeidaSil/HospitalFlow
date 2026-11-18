@@ -40,13 +40,13 @@ import { SetorResponse } from '../../../setores/models/setor.models';
   styleUrl: './leitos.scss',
 })
 export class Leitos implements OnInit {
-  // services usados na tela
+  // SERVICES
   private leitoService = inject(LeitoService);
   private setorService = inject(Setor);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
 
-  // dados que vem da API
+  // DADOS QUE VEM DA API/BANCO
   leitos = signal<LeitoResponse[]>([]);
   setores = signal<SetorResponse[]>([]);
   resumo = signal<ResumoLeitosResponse>({
@@ -60,13 +60,13 @@ export class Leitos implements OnInit {
   carregando = signal(false);
   erro = signal('');
 
-  // valores escolhidos nos filtros
+  // VALORES DOS FILTROS
   busca = signal('');
   setorSelecionado = signal<number | null>(null);
   statusSelecionado = signal<StatusLeito | null>(null);
   situacaoSelecionada = signal<boolean | null>(null);
 
-  // opcoes dos selects de filtro
+  // OPCOES SELECT
   statusOpcoes = [
     { nome: 'Todos os status', valor: null },
     { nome: 'Disponível', valor: 'disponivel' },
@@ -81,7 +81,7 @@ export class Leitos implements OnInit {
     { nome: 'Inativos', valor: false }
   ];
 
-  // texto e cor de cada status na tabela
+  // TEXTO E COR STATUS
   nomeStatus: any = {
     disponivel: 'Disponível',
     ocupado: 'Ocupado',
@@ -96,7 +96,7 @@ export class Leitos implements OnInit {
     manutencao: 'bg-[#EEE3FD] text-[#5F13AE]'
   };
 
-  // modal de criar/editar leito
+  // MODAL CRIAR/EDITAR LEITO
   visible: boolean = false;
   leitoEmEdicao = signal<LeitoResponse | null>(null);
 
@@ -113,7 +113,7 @@ export class Leitos implements OnInit {
     setor_id: new FormControl<number | null>(null, Validators.required)
   });
 
-  // id do leito que esta sendo ativado/desativado (loading do botao)
+  // ID DO LEITO QUE ESTA SENDO ATIVADO/DESATIVADO
   processandoId = signal<number | null>(null);
 
   ngOnInit(): void {
@@ -121,13 +121,13 @@ export class Leitos implements OnInit {
     this.atualizarDados();
   }
 
-  // recarrega a tabela e os cards
+  // ATUALIZA CARDS E TABELA 
   atualizarDados() {
     this.carregarLeitos();
     this.carregarResumo();
   }
 
-  // busca os leitos na API mandando so os filtros preenchidos
+  // BUSCA LEITO COM OS FILTROS
   carregarLeitos() {
     this.carregando.set(true);
     this.erro.set('');
@@ -167,7 +167,7 @@ export class Leitos implements OnInit {
     });
   }
 
-  // busca os setores para os selects
+  // BUSCA SETORES PARA OS SELECTS
   carregarSetores() {
     this.setorService.listarSetores().subscribe({
       next: (setores) => {
@@ -179,7 +179,7 @@ export class Leitos implements OnInit {
     });
   }
 
-  // busca os numeros dos cards
+  // BUSCA AS INFORMAÇÕES DOS CARDS
   carregarResumo() {
     this.leitoService.resumo().subscribe({
       next: (resumo) => {
@@ -191,7 +191,7 @@ export class Leitos implements OnInit {
     });
   }
 
-  // porcentagem de cada card em relacao ao total
+  // CALCULO PORCENTAGEM CARD
   calcularPercentuais(valor: number): number {
     const total = this.resumo().total;
 
@@ -202,21 +202,21 @@ export class Leitos implements OnInit {
     return Math.round((valor / total) * 100);
   }
 
-  // abre o modal vazio para cadastrar
+  // ABRE O MODAL VAZIO
   abrirCriacao() {
     this.leitoEmEdicao.set(null);
     this.formLeito.reset({ codigo: '', setor_id: null });
     this.visible = true;
   }
 
-  // abre o modal preenchido com o leito escolhido
+  // ABRE O MODAL PREENCHIDO
   abrirEdicao(leito: LeitoResponse) {
     this.leitoEmEdicao.set(leito);
     this.formLeito.reset({ codigo: leito.codigo, setor_id: leito.setor_id });
     this.visible = true;
   }
 
-  // cria ou edita, dependendo se tem leito em edicao
+  // CRIA OU EDITA O LEITO
   salvar() {
     if (this.formLeito.invalid) {
       this.formLeito.markAllAsTouched();
@@ -242,7 +242,7 @@ export class Leitos implements OnInit {
     });
   }
 
-  // ativar vai direto, desativar pede confirmacao antes
+  // ATIVAR E DESATIVAR PEDINDO CONFIRMAÇÃO
   alterarSituacao(leito: LeitoResponse) {
     if (!leito.ativo) {
       this.enviarAlteracaoSituacao(leito, true);
@@ -261,7 +261,7 @@ export class Leitos implements OnInit {
     });
   }
 
-  // chama a API e mostra o toast de sucesso ou erro
+  // CHAMA A API E CONFIRMA SE DEU CERTO OU NAO
   private enviarAlteracaoSituacao(leito: LeitoResponse, ativo: boolean) {
     this.processandoId.set(leito.id);
 

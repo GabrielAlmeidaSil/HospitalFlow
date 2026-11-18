@@ -106,10 +106,11 @@
                 <tr>
                     <th pSortableColumn="nome" class="bg-[#F1F6FC]">Nome <p-sortIcon field="nome" /></th>
                     <th class="bg-[#F1F6FC]">CPF</th>
-                    <th pSortableColumn="setor.nome" class="bg-[#F1F6FC]">Setor <p-sortIcon field="setor.nome" /></th>
-                    <th pSortableColumn="leito" class="bg-[#F1F6FC]">Leito <p-sortIcon field="leito" /></th>
-                    <th pSortableColumn="status" class="bg-[#F1F6FC]">Status <p-sortIcon field="status" /></th>
-                    <th pSortableColumn="ativo" class="bg-[#F1F6FC]">Ativo <p-sortIcon field="ativo" /></th>
+                    <th pSortableColumn="leito" class="bg-[#F1F6FC]">Data de Nascimento <p-sortIcon field="leito" /></th>
+                    <th pSortableColumn="ativo" class="bg-[#F1F6FC]">Setor Atual<p-sortIcon field="ativo" /></th>
+                    <th pSortableColumn="ativo" class="bg-[#F1F6FC]">Leito Atual<p-sortIcon field="ativo" /></th>
+                    <th pSortableColumn="status" class="bg-[#F1F6FC]">Situação Atual<p-sortIcon field="status" /></th>
+                    <th pSortableColumn="status" class="bg-[#F1F6FC]">Ativo<p-sortIcon field="status" /></th>
                     <th class="bg-[#F1F6FC] text-center">Ações</th>
                 </tr>
             </ng-template>
@@ -118,6 +119,7 @@
                 <tr>
                     <td class="font-semibold">{{ paciente.nome }}</td>
                     <td class="text-gray-600">{{ paciente.cpf }}</td>
+                    <td class="text-gray-600">04/12/2005</td>
                     <td>
                         <i class="pi pi-building text-gray-500 me-2"></i>{{ paciente.setor.nome }}
                     </td>

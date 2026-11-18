@@ -24,3 +24,9 @@ class LeitoNaoEncontrado(Exception):
 
 class LeitoOcupado(Exception):
     pass
+
+class CpfPacienteJaExiste(Exception):
+    pass
+
+class PacienteNaoExiste(Exception):
+    pass

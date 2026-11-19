@@ -12,7 +12,12 @@ from exceptions import (
     LeitoNaoEncontrado, 
     LeitoOcupado,
     CpfPacienteJaExiste,
-    PacienteNaoExiste
+    PacienteNaoExiste,
+    LeitoInativo,
+    LeitoIndisponivel,
+    LeitoNaoPertenceAoSetor,
+    PacienteInativo,
+    AtendimentoAtivoJaExiste,
 )
 
 from routes.usuario import router as usuario_router
@@ -20,6 +25,7 @@ from routes.auth import router as auth_router
 from routes.setor import router as setor_router
 from routes.leito import router as leito_router
 from routes.paciente import router as paciente_router
+from routes.atendimento import router as atendimento_router
 
 app = FastAPI(
     title="HospitalFlow API",
@@ -149,6 +155,51 @@ def paciente_nao_encontrado(request: Request, exc: PacienteNaoExiste):
         }
     )
 
+@app.exception_handler(LeitoInativo)
+def leito_inativo(request: Request, exc: LeitoInativo):
+    return JSONResponse(
+        status_code=409,
+        content={
+            "detail": "O leito está inativo"
+        }
+    )
+
+@app.exception_handler(LeitoIndisponivel)
+def leito_indisponivel(request: Request, exc: LeitoIndisponivel):
+    return JSONResponse(
+        status_code=409,
+        content={
+            "detail": "O leito não está disponível"
+        }
+    )
+
+@app.exception_handler(LeitoNaoPertenceAoSetor)
+def leito_nao_pertence_setor(request: Request, exc: LeitoNaoPertenceAoSetor):
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": "O leito não pertence ao setor informado"
+        }
+    )
+
+@app.exception_handler(PacienteInativo)
+def paciente_inativo(request: Request, exc: PacienteInativo):
+    return JSONResponse(
+        status_code=409,
+        content={
+            "detail": "O paciente está com o cadastro inativo"
+        }
+    )
+
+@app.exception_handler(AtendimentoAtivoJaExiste)
+def atendimento_ativo_existe(request: Request, exc: AtendimentoAtivoJaExiste):
+    return JSONResponse(
+        status_code=409,
+        content={
+            "detail": "O paciente já possui um atendimento ativo"
+        }
+    )
+
 
 
 app.include_router(usuario_router)
@@ -156,3 +207,4 @@ app.include_router(auth_router)
 app.include_router(setor_router)
 app.include_router(leito_router)
 app.include_router(paciente_router)
+app.include_router(atendimento_router)

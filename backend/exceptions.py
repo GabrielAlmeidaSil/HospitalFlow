@@ -25,8 +25,23 @@ class LeitoNaoEncontrado(Exception):
 class LeitoOcupado(Exception):
     pass
 
+class LeitoInativo(Exception):
+    pass
+
+class LeitoIndisponivel(Exception):
+    pass
+
+class LeitoNaoPertenceAoSetor(Exception):
+    pass
+
 class CpfPacienteJaExiste(Exception):
     pass
 
 class PacienteNaoExiste(Exception):
+    pass
+
+class PacienteInativo(Exception):
+    pass
+
+class AtendimentoAtivoJaExiste(Exception):
     pass

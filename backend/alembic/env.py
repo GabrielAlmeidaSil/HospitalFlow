@@ -11,6 +11,7 @@ from models.usuario import UsuarioDB
 from models.leito import LeitoDB
 from models.setor import SetorDB
 from models.paciente import PacienteDB
+from models.atendimento import AtendimentoDB
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

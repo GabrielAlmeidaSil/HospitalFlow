@@ -1,14 +1,19 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from database import get_db
-from schemas.pacientes import CriarPaciente, RespostaPaciente, AtualizarPaciente, AlterarSituacaoPaciente
-from services.paciente_service import criar_paciente_service, listar_pacientes_service, atualizar_paciente_service, alterar_situacao_paciente_service
+from schemas.pacientes import CriarPaciente, RespostaPaciente, AtualizarPaciente, AlterarSituacaoPaciente, ResumoPacientes
+from services.paciente_service import criar_paciente_service, listar_pacientes_service, atualizar_paciente_service, alterar_situacao_paciente_service, resumo_pacientes_service
 
 
 router = APIRouter(
     prefix="/pacientes",
     tags=["Pacientes"]
 )
+
+
+@router.get("/resumo", response_model=ResumoPacientes)
+def resumo_pacientes(db: Session = Depends(get_db)):
+    return resumo_pacientes_service(db=db)
 
 
 @router.post("/", status_code=201, response_model=RespostaPaciente)

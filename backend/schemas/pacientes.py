@@ -45,3 +45,9 @@ class AtualizarPaciente(BaseModel):
 
 class AlterarSituacaoPaciente(BaseModel):
     ativo: bool
+
+
+class ResumoPacientes(BaseModel):
+    total: int
+    ativos: int
+    inativos: int

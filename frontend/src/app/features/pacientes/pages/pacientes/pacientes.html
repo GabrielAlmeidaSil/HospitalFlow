@@ -1,5 +1,31 @@
 <section>
 
+    <p-dialog [header]="pacienteEmEdicao() ? 'Editar Paciente' : 'Novo Paciente'" [modal]="true" [(visible)]="visible" [style]="{ width: '90vw', maxWidth: '25rem' }">
+        <form [formGroup]="formPaciente" (ngSubmit)="salvar()">
+            <span class="block mb-8">{{ pacienteEmEdicao() ? 'Altere os dados do paciente' : 'Cadastre um novo paciente' }}</span>
+
+            <div class="flex items-center gap-4 mb-4">
+                <label for="nome" class="font-semibold w-24">Nome</label>
+                <input pInputText id="nome" formControlName="nome" class="flex-auto" autocomplete="off" placeholder="Ana Souza" />
+            </div>
+
+            <div class="flex items-center gap-4 mb-4">
+                <label for="cpf" class="font-semibold w-24">CPF</label>
+                <input pInputText id="cpf" formControlName="cpf" class="flex-auto" autocomplete="off" maxlength="11" placeholder="Somente números" />
+            </div>
+
+            <div class="flex items-center gap-4 mb-8">
+                <label for="data_nascimento" class="font-semibold w-24">Nascimento</label>
+                <input pInputText type="date" id="data_nascimento" formControlName="data_nascimento" class="flex-auto" />
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <p-button label="Cancelar" severity="secondary" type="button" (onClick)="visible = false" />
+                <p-button label="Salvar" type="submit" styleClass="bg-[#046096] text-[#E5F4FD] border-none" />
+            </div>
+        </form>
+    </p-dialog>
+
     <!-- INTRODUÇÃO PACIENTES -->
     <div class="flex items-center">
         <i class="pi pi-users p-2 bg-[#E5F4FD] text-[#046096] text-4xl rounded-xl"></i>
@@ -20,7 +46,7 @@
                     <h3 class="font-medium">Total de Pacientes</h3>
 
                     <div class="flex items-center gap-3">
-                        <h1 class="font-bold text-4xl mt-2 mb-1">1.248</h1>
+                        <h1 class="font-bold text-4xl mt-2 mb-1">{{ resumo().total }}</h1>
                     </div>
                 </div>
             </div>
@@ -32,12 +58,12 @@
                 <div>
                     <i class="pi pi-check p-2 bg-[#E4F9F7] text-[#0F966E] text-4xl rounded-xl"></i>
                 </div>
-                <div class="mt-3 sm:mt-0 sm:ms-4">
+                <div class="flex-1 mt-3 sm:mt-0 sm:ms-4">
                     <h3 class="font-medium">Ativos</h3>
 
                     <div class="flex justify-between items-end gap-3">
-                        <h1 class="font-bold text-4xl mt-2 mb-1">1.126</h1>
-                        <p class="bg-[#E4F9F7] text-[#0F966E] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1">90%</p>
+                        <h1 class="font-bold text-4xl mt-2 mb-1">{{ resumo().ativos }}</h1>
+                        <p class="bg-[#E4F9F7] text-[#0F966E] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1">{{ calcularPercentual(resumo().ativos) }}%</p>
                     </div>
                 </div>
             </div>
@@ -49,12 +75,12 @@
                 <div>
                     <i class="pi pi-times p-2 bg-[#FDE0E0] text-[#DB1312] text-4xl rounded-xl"></i>
                 </div>
-                <div class="mt-3 sm:mt-0 sm:ms-4">
+                <div class="flex-1 mt-3 sm:mt-0 sm:ms-4">
                     <h3 class="font-medium">Inativos</h3>
 
                     <div class="flex justify-between items-end gap-3">
-                        <h1 class="font-bold text-4xl mt-2 mb-1">122</h1>
-                        <p class="bg-[#FDE0E0] text-[#DB1312] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1">10%</p>
+                        <h1 class="font-bold text-4xl mt-2 mb-1">{{ resumo().inativos }}</h1>
+                        <p class="bg-[#FDE0E0] text-[#DB1312] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1">{{ calcularPercentual(resumo().inativos) }}%</p>
                     </div>
                 </div>
             </div>
@@ -64,12 +90,15 @@
 
     <!-- FILTROS -->
     <div class="flex flex-wrap items-end gap-4 mb-6">
+
+        <!-- BUSCA -->
         <p-iconfield iconPosition="left" class="flex-1 min-w-56">
             <p-inputicon class="pi pi-search" />
-            <input type="text" pInputText placeholder="Buscar por nome ou CPF..." class="w-full" [ngModel]="busca()" (ngModelChange)="busca.set($event)" />
+            <input type="text" pInputText placeholder="Buscar por nome ou CPF..." class="w-full" [ngModel]="busca()" (ngModelChange)="busca.set($event)" (keyup.enter)="listarPacientes()" />
         </p-iconfield>
 
-        <div class="flex flex-col gap-1 flex-1 min-w-40">
+        <!-- SETOR E STATUS VOLTAM QUANDO ATENDIMENTO ESTIVER PRONTOS -->
+        <!-- <div class="flex flex-col gap-1 flex-1 min-w-40">
             <label class="text-sm text-gray-600">Setor</label>
             <p-select [options]="setores" optionLabel="nome" optionValue="id" [ngModel]="setorSelecionado()" (ngModelChange)="setorSelecionado.set($event)" placeholder="Todos os setores" [showClear]="true" class="w-full" />
         </div>
@@ -77,24 +106,28 @@
         <div class="flex flex-col gap-1 flex-1 min-w-40">
             <label class="text-sm text-gray-600">Status</label>
             <p-select [options]="statusOpcoes" optionLabel="nome" optionValue="valor" [ngModel]="statusSelecionado()" (ngModelChange)="statusSelecionado.set($event)" class="w-full" />
-        </div>
+        </div> -->
 
+        <!-- SITUAÇÃO DO CADASTRO -->
         <div class="flex flex-col gap-1 flex-1 min-w-40">
             <label class="text-sm text-gray-600">Situação</label>
-            <p-select [options]="situacaoOpcoes" optionLabel="nome" optionValue="valor" [ngModel]="situacaoSelecionada()" (ngModelChange)="situacaoSelecionada.set($event)" class="w-full" />
+            <p-select [options]="situacaoOpcoes" optionLabel="nome" optionValue="valor" [ngModel]="situacaoSelecionada()" (ngModelChange)="situacaoSelecionada.set($event); listarPacientes()" class="w-full" />
         </div>
 
+
+        <!-- AÇÕES -->
         <div class="flex gap-3 w-full sm:w-auto">
-            <p-button label="Atualizar" icon="pi pi-refresh" [outlined]="true" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap" />
-            <p-button label="Novo Paciente" icon="pi pi-plus" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap bg-[#012059] border-[#012059]" />
+            <p-button label="Atualizar" icon="pi pi-refresh" [outlined]="true" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap" (onClick)="atualizarDados()" />
+            <p-button label="Novo Paciente" icon="pi pi-plus" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap bg-[#012059] border-[#012059]" (onClick)="abrirCriacao()" />
         </div>
     </div>
 
 
-    <!-- TABELAS -->
+    <!-- TABELA -->
     <div class="border rounded-xl border-gray-200 overflow-hidden">
         <p-table
             [value]="pacientes()"
+            [loading]="carregando()"
             [paginator]="true"
             [rows]="8"
             [rowsPerPageOptions]="[8, 16, 24]"
@@ -115,18 +148,26 @@
                 </tr>
             </ng-template>
 
+            <ng-template #emptymessage>
+                <tr>
+                    <td colspan="8" class="text-center py-10 text-gray-500">
+                        Nenhum paciente encontrado.
+                    </td>
+                </tr>
+            </ng-template>
+
             <ng-template #body let-paciente>
                 <tr>
                     <td class="font-semibold">{{ paciente.nome }}</td>
-                    <td class="text-gray-600">{{ paciente.cpf }}</td>
-                    <td class="text-gray-600">04/12/2005</td>
+                    <td class="text-gray-600">{{ formatarCpf(paciente.cpf) }}</td>
+                    <td class="text-gray-600">{{ formatarData(paciente.data_nascimento) }}</td>
                     <td>
-                        <i class="pi pi-building text-gray-500 me-2"></i>{{ paciente.setor.nome }}
+                        <i class="pi pi-building text-gray-500 me-2"></i>--
                     </td>
-                    <td>{{ paciente.leito }}</td>
+                    <td>--</td>
                     <td>
-                        <span class="text-sm font-semibold rounded-full px-2.5 py-1" [class]="corStatus[paciente.status]">
-                            <i class="pi pi-circle-fill text-[0.5rem] me-1"></i>{{ nomeStatus[paciente.status] }}
+                        <span class="text-sm font-semibold rounded-full px-2.5 py-1">
+                            <i class="pi pi-circle-fill text-[0.5rem] me-1"></i>--
                         </span>
                     </td>
                     <td>
@@ -138,11 +179,11 @@
                     </td>
                     <td>
                         <div class="flex justify-center gap-2">
-                            <p-button icon="pi pi-pencil" [outlined]="true" size="small" />
+                            <p-button icon="pi pi-pencil" [outlined]="true" size="small" (onClick)="abrirEdicao(paciente)" />
                             @if (paciente.ativo) {
-                                <p-button icon="pi pi-ban" severity="danger" [outlined]="true" size="small" />
+                                <p-button icon="pi pi-ban" severity="danger" [outlined]="true" size="small" (onClick)="alterarSituacao(paciente)" />
                             } @else {
-                                <p-button icon="pi pi-check" severity="success" [outlined]="true" size="small" />
+                                <p-button icon="pi pi-check" severity="success" [outlined]="true" size="small" (onClick)="alterarSituacao(paciente)" />
                             }
                         </div>
                     </td>

@@ -1,74 +1,227 @@
-import { Component, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, inject, signal, OnInit } from '@angular/core';
+import { FormControl, FormGroup, FormsModule, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
+import { DialogModule } from 'primeng/dialog';
+import { Paciente } from '../../services/paciente.service';
+import { CriarPacienteRequest, FiltrosPaciente, PacienteResponse, ResumoPacientesResponse } from '../../models/paciente.models';
 
 @Component({
   selector: 'app-pacientes',
   imports: [
     FormsModule,
+    ReactiveFormsModule,
     ButtonModule,
     IconFieldModule,
     InputIconModule,
     InputTextModule,
     SelectModule,
-    TableModule
+    TableModule,
+    DialogModule
   ],
   templateUrl: './pacientes.html',
   styleUrl: './pacientes.scss',
 })
-export class Pacientes {
+export class Pacientes implements OnInit {
   busca = signal('');
-  setorSelecionado = signal<number | null>(null);
-  statusSelecionado = signal<string | null>(null);
+  carregando = signal(false);
   situacaoSelecionada = signal<boolean | null>(null);
+  pacientes = signal<PacienteResponse[]>([])
 
-  setores = [
-    { id: 1, nome: 'UTI' },
-    { id: 2, nome: 'Enfermaria' },
-    { id: 3, nome: 'Centro Cirúrgico' },
-    { id: 4, nome: 'Pronto-Socorro' }
+  //INJECAO DE SERVICES
+  private pacienteService = inject(Paciente)
+
+
+  //RESUMO CARDS
+  resumo = signal<ResumoPacientesResponse>({
+    total: 0,
+    ativos: 0,
+    inativos: 0
+  });
+
+  
+  //OPÇÕES DE SITUAÇÕES
+  situacaoOpcoes: {
+    nome: string;
+    valor: boolean | null;
+  }[] = [
+    {
+      nome: 'Todos',
+      valor: null
+    },
+    {
+      nome: 'Ativos',
+      valor: true
+    },
+    {
+      nome: 'Inativos',
+      valor: false
+    }
   ];
 
-  statusOpcoes = [
-    { nome: 'Todos os status', valor: null },
-    { nome: 'Internado', valor: 'internado' },
-    { nome: 'Em observação', valor: 'observacao' },
-    { nome: 'Alta', valor: 'alta' }
-  ];
 
-  situacaoOpcoes = [
-    { nome: 'Todos', valor: null },
-    { nome: 'Ativos', valor: true },
-    { nome: 'Inativos', valor: false }
-  ];
+  ngOnInit(): void {
+    this.atualizarDados()
+  }
 
-  nomeStatus: any = {
-    internado: 'Internado',
-    observacao: 'Em observação',
-    alta: 'Alta'
-  };
+  atualizarDados() {
+    this.listarPacientes();
+    this.carregarResumo();
+  }
 
-  corStatus: any = {
-    internado: 'bg-[#E0F2FE] text-[#037BD1]',
-    observacao: 'bg-[#FDF5E1] text-[#CE941B]',
-    alta: 'bg-[#E4F9F7] text-[#0F966E]'
-  };
 
-  pacientes = signal([
-    { id: 1, nome: 'Ana Souza', cpf: '123.456.789-01', setor: { id: 1, nome: 'UTI' }, leito: 'UTI-01', status: 'internado', ativo: true },
-    { id: 2, nome: 'Carlos Lima', cpf: '234.567.890-12', setor: { id: 1, nome: 'UTI' }, leito: 'UTI-02', status: 'internado', ativo: true },
-    { id: 3, nome: 'Mariana Alves', cpf: '345.678.901-23', setor: { id: 2, nome: 'Enfermaria' }, leito: 'ENF-101', status: 'observacao', ativo: true },
-    { id: 4, nome: 'João Pereira', cpf: '456.789.012-34', setor: { id: 2, nome: 'Enfermaria' }, leito: 'ENF-102', status: 'internado', ativo: true },
-    { id: 5, nome: 'Fernanda Costa', cpf: '567.890.123-45', setor: { id: 3, nome: 'Centro Cirúrgico' }, leito: 'CC-01', status: 'internado', ativo: true },
-    { id: 6, nome: 'Rafael Martins', cpf: '678.901.234-56', setor: { id: 4, nome: 'Pronto-Socorro' }, leito: 'PS-01', status: 'observacao', ativo: true },
-    { id: 7, nome: 'Juliana Rocha', cpf: '789.012.345-67', setor: { id: 4, nome: 'Pronto-Socorro' }, leito: 'PS-02', status: 'observacao', ativo: true },
-    { id: 8, nome: 'Pedro Santos', cpf: '890.123.456-78', setor: { id: 2, nome: 'Enfermaria' }, leito: 'ENF-103', status: 'alta', ativo: false },
-    { id: 9, nome: 'Beatriz Oliveira', cpf: '901.234.567-89', setor: { id: 1, nome: 'UTI' }, leito: 'UTI-03', status: 'internado', ativo: true },
-    { id: 10, nome: 'Lucas Ferreira', cpf: '012.345.678-90', setor: { id: 4, nome: 'Pronto-Socorro' }, leito: 'PS-03', status: 'alta', ativo: false }
-  ]);
+  calcularPercentual(valor: number): number {
+    const total = this.resumo().total;
+
+    if (total === 0) {
+      return 0;
+    }
+
+    return Math.round(
+      (valor / total) * 100
+    );
+  }
+
+
+  formatarCpf(cpf: string): string {
+    return cpf.replace(
+      /(\d{3})(\d{3})(\d{3})(\d{2})/,
+      '$1.$2.$3-$4'
+    );
+  }
+
+  //FORMATAR DATA PARA (DD-MM-YYYY)
+  formatarData(data: string): string {
+    const [ano, mes, dia] = data.split('-');
+
+    return `${dia}/${mes}/${ano}`;
+  }
+
+  //FORMULARIO DE CRIAR NOVO PACIENTE
+  pacienteEmEdicao = signal<PacienteResponse | null>(null);
+  visible: boolean = false;
+
+  formPaciente = new FormGroup({
+    nome: new FormControl('', {
+      nonNullable: true,
+      validators: [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(120)
+      ]
+    }),
+
+    cpf: new FormControl('', {
+      nonNullable: true,
+      validators: [
+        Validators.required,
+        Validators.minLength(11),
+        Validators.maxLength(11)
+      ]
+    }),
+
+    data_nascimento: new FormControl('', {
+      nonNullable: true,
+      validators: [
+        Validators.required
+      ]
+    })
+  })
+
+  // ABRE O MODAL VAZIO
+  abrirCriacao() {
+    this.pacienteEmEdicao.set(null);
+    this.formPaciente.reset({ nome: '', cpf: '', data_nascimento: '' });
+    this.visible = true;
+  }
+
+  // ABRE O MODAL PREENCHIDO
+  abrirEdicao(paciente: PacienteResponse) {
+    this.pacienteEmEdicao.set(paciente);
+    this.formPaciente.reset({ nome: paciente.nome, cpf: paciente.cpf, data_nascimento: paciente.data_nascimento });
+    this.visible = true;
+  }
+
+  // CRIA OU EDITA O PACIENTE
+  salvar() {
+    if (this.formPaciente.invalid) {
+      this.formPaciente.markAllAsTouched();
+      return;
+    }
+
+    const { nome, cpf, data_nascimento } = this.formPaciente.getRawValue();
+
+    const dados: CriarPacienteRequest = { nome: nome.trim(), cpf, data_nascimento };
+    const paciente = this.pacienteEmEdicao();
+
+    const requisicao = paciente
+      ? this.pacienteService.editar(paciente.id, dados)
+      : this.pacienteService.criar(dados);
+
+    requisicao.subscribe({
+      next: () => {
+        this.visible = false;
+        this.atualizarDados();
+      },
+      error: (erro) => console.error(erro)
+    });
+  }
+
+
+  listarPacientes() {
+    this.carregando.set(true);
+
+    const filtros: FiltrosPaciente = {};
+
+    const busca = this.busca().trim();
+
+    if (busca) {
+      filtros.busca = busca
+    }
+
+    const ativo = this.situacaoSelecionada();
+
+    if (ativo !== null) {
+      filtros.ativo = ativo;
+    }
+
+    this.pacienteService.listar(filtros).subscribe({
+      next: (pacientes) => {
+        this.pacientes.set(pacientes);
+        this.carregando.set(false)
+      },
+
+      error: (erro) => {
+        console.error(erro);
+        this.carregando.set(false);
+      }
+
+    });
+  }
+
+
+  carregarResumo() {
+    this.pacienteService.resumo().subscribe({
+      next: (resumo) => {
+        this.resumo.set(resumo)
+      },
+
+      error: (erro) => {
+        console.error('Erro ao carregar resumo: ', erro)
+      }
+
+    });
+  }
+
+
+  alterarSituacao(paciente: PacienteResponse) {
+    this.pacienteService.alterarSituacao(paciente.id, !paciente.ativo).subscribe({
+      next: () => this.atualizarDados(),
+      error: (erro) => console.error(erro)
+    })
+  }
 }

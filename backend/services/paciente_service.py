@@ -1,4 +1,4 @@
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, func
 from sqlalchemy.orm import Session
 from schemas.pacientes import CriarPaciente, AtualizarPaciente
 from models.paciente import PacienteDB
@@ -97,3 +97,19 @@ def alterar_situacao_paciente_service(db: Session, paciente_id: int, ativo: bool
     db.refresh(paciente)
 
     return paciente
+
+
+def resumo_pacientes_service(db: Session): 
+    comando = select(
+        func.count(PacienteDB.id).label("total"),
+
+        func.count(PacienteDB.id)
+        .filter(PacienteDB.ativo.is_(True))
+        .label("ativos"),
+
+        func.count(PacienteDB.id)
+        .filter(PacienteDB.ativo.is_(False))
+        .label("inativos")
+    )
+
+    return db.execute(comando).mappings().one()

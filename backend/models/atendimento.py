@@ -47,7 +47,7 @@ class AtendimentoDB(Base):
         default=lambda: datetime.now(timezone.utc)
     )
 
-    data_saida: Mapped[datetime] = mapped_column(
+    data_saida: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True
     )

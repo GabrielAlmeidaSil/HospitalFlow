@@ -18,6 +18,8 @@ from exceptions import (
     LeitoNaoPertenceAoSetor,
     PacienteInativo,
     AtendimentoAtivoJaExiste,
+    AtendimentoNaoEncontrado,
+    AtendimentoEncerrado,
 )
 
 from routes.usuario import router as usuario_router
@@ -197,6 +199,24 @@ def atendimento_ativo_existe(request: Request, exc: AtendimentoAtivoJaExiste):
         status_code=409,
         content={
             "detail": "O paciente já possui um atendimento ativo"
+        }
+    )
+
+@app.exception_handler(AtendimentoNaoEncontrado)
+def atendimento_nao_encontrado(request: Request, exc: AtendimentoNaoEncontrado):
+    return JSONResponse(
+        status_code=404,
+        content={
+            "detail": "Atendimento não encontrado"
+        }
+    )
+
+@app.exception_handler(AtendimentoEncerrado)
+def atendimento_encerrado(request: Request, exc: AtendimentoEncerrado):
+    return JSONResponse(
+        status_code=409,
+        content={
+            "detail": "O atendimento já está encerrado"
         }
     )
 

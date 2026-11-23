@@ -45,3 +45,9 @@ class PacienteInativo(Exception):
 
 class AtendimentoAtivoJaExiste(Exception):
     pass
+
+class AtendimentoNaoEncontrado(Exception):
+    pass
+
+class AtendimentoEncerrado(Exception):
+    pass

@@ -1,92 +1,427 @@
-<!-- INTRODUÇÃO ATENDIMENTOS -->
-    <div class="flex items-center">
-        <i class="pi pi-wave-pulse p-2 bg-[#E5F4FD] text-[#046096] text-4xl rounded-xl"></i>
-        <div class="flex flex-col ms-3">
-            <h1 class="text-2xl md:text-3xl font-medium">Atendimentos</h1>
-            <p class="text-gray-500 mt-1">Gerencie os atendimentos dos pacientes, acompanhe o status, setor, leito e o histórico de internações.</p>
+<section>
+    <p-toast />
+    <p-confirmdialog />
+
+    <!-- MODAL NOVO ATENDIMENTO -->
+    <p-dialog
+        header="Novo Atendimento"
+        [modal]="true"
+        [(visible)]="visibleNovo"
+        [style]="{ width: '90vw', maxWidth: '28rem' }"
+    >
+        <form [formGroup]="formNovo" (ngSubmit)="salvarNovo()">
+            <span class="block mb-8">Abra um novo atendimento para um paciente</span>
+
+            <div class="flex flex-col gap-1 mb-4">
+                <label class="font-semibold">Paciente</label>
+                <p-select
+                    formControlName="paciente_id"
+                    [options]="pacientes()"
+                    optionLabel="nome"
+                    optionValue="id"
+                    [filter]="true"
+                    filterBy="nome,cpf"
+                    placeholder="Selecione um paciente"
+                    appendTo="body"
+                    class="w-full"
+                />
+            </div>
+
+            <div class="flex flex-col gap-1 mb-4">
+                <label class="font-semibold">Setor <span class="text-gray-400 font-normal">(opcional)</span></label>
+                <p-select
+                    formControlName="setor_id"
+                    [options]="setores()"
+                    optionLabel="nome"
+                    optionValue="id"
+                    [showClear]="true"
+                    placeholder="Selecione um setor"
+                    appendTo="body"
+                    class="w-full"
+                    (onChange)="formNovo.controls.leito_id.setValue(null); carregarLeitosDisponiveis($event.value)"
+                />
+            </div>
+
+            <div class="flex flex-col gap-1 mb-8">
+                <label class="font-semibold">Leito <span class="text-gray-400 font-normal">(opcional)</span></label>
+                <p-select
+                    formControlName="leito_id"
+                    [options]="leitosDisponiveis()"
+                    optionLabel="codigo"
+                    optionValue="id"
+                    [showClear]="true"
+                    placeholder="Selecione um leito disponível"
+                    emptyMessage="Selecione um setor com leitos disponíveis"
+                    appendTo="body"
+                    class="w-full"
+                />
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <p-button label="Cancelar" severity="secondary" type="button" (onClick)="visibleNovo = false" />
+                <p-button label="Salvar" type="submit" styleClass="bg-[#012059] border-[#012059]" />
+            </div>
+        </form>
+    </p-dialog>
+
+    <!-- MODAL DETALHES -->
+    <p-dialog
+        header="Detalhes do Atendimento"
+        [modal]="true"
+        [(visible)]="visibleDetalhes"
+        [style]="{ width: '90vw', maxWidth: '28rem' }"
+    >
+        @if (atendimentoSelecionado(); as atendimento) {
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <p class="text-sm text-gray-500">Paciente</p>
+                    <p class="font-semibold">{{ atendimento.paciente.nome }}</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">CPF</p>
+                    <p>{{ formatarCpf(atendimento.paciente.cpf) }}</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Status</p>
+                    <p>{{ nomeStatus[atendimento.status] }}</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Setor</p>
+                    <p>{{ atendimento.setor?.nome ?? '—' }}</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Leito</p>
+                    <p>{{ atendimento.leito?.codigo ?? '—' }}</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Data de entrada</p>
+                    <p>{{ atendimento.data_entrada | date:'dd/MM/yyyy HH:mm' }}</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Data de saída</p>
+                    <p>{{ atendimento.data_saida ? (atendimento.data_saida | date:'dd/MM/yyyy HH:mm') : '—' }}</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Situação</p>
+                    <p>{{ atendimento.data_saida ? 'Encerrado' : 'Em aberto' }}</p>
+                </div>
+            </div>
+        }
+    </p-dialog>
+
+    <!-- MODAL ALTERAR STATUS -->
+    <p-dialog
+        header="Alterar Status"
+        [modal]="true"
+        [(visible)]="visibleStatus"
+        [style]="{ width: '90vw', maxWidth: '25rem' }"
+    >
+        <span class="block mb-6">{{ atendimentoSelecionado()?.paciente?.nome }}</span>
+
+        <div class="flex flex-col gap-1 mb-8">
+            <label class="font-semibold">Novo status</label>
+            <p-select
+                [options]="statusAlteraveis"
+                optionLabel="nome"
+                optionValue="valor"
+                [ngModel]="novoStatus()"
+                (ngModelChange)="novoStatus.set($event)"
+                placeholder="Selecione o status"
+                appendTo="body"
+                class="w-full"
+            />
         </div>
+
+        <div class="flex justify-end gap-2">
+            <p-button label="Cancelar" severity="secondary" type="button" (onClick)="visibleStatus = false" />
+            <p-button label="Salvar" styleClass="bg-[#012059] border-[#012059]" (onClick)="salvarStatus()" />
+        </div>
+    </p-dialog>
+
+    <!-- MODAL TRANSFERÊNCIA -->
+    <p-dialog
+        header="Transferir Paciente"
+        [modal]="true"
+        [(visible)]="visibleTransferencia"
+        [style]="{ width: '90vw', maxWidth: '28rem' }"
+    >
+        <form [formGroup]="formTransferencia" (ngSubmit)="salvarTransferencia()">
+            @if (atendimentoSelecionado(); as atendimento) {
+                <span class="block mb-4">{{ atendimento.paciente.nome }}</span>
+
+                <div class="bg-[#F1F6FC] rounded-lg p-3 mb-6">
+                    <p class="text-sm text-gray-500">Localização atual</p>
+                    <p class="font-semibold">
+                        <i class="pi pi-building text-gray-500 me-2"></i>{{ atendimento.setor?.nome ?? 'Sem setor' }}
+                        · Leito {{ atendimento.leito?.codigo ?? '—' }}
+                    </p>
+                </div>
+            }
+
+            <div class="flex flex-col gap-1 mb-4">
+                <label class="font-semibold">Novo setor</label>
+                <p-select
+                    formControlName="setor_id"
+                    [options]="setores()"
+                    optionLabel="nome"
+                    optionValue="id"
+                    placeholder="Selecione um setor"
+                    appendTo="body"
+                    class="w-full"
+                    (onChange)="formTransferencia.controls.leito_id.setValue(null); carregarLeitosDisponiveis($event.value)"
+                />
+            </div>
+
+            <div class="flex flex-col gap-1 mb-8">
+                <label class="font-semibold">Novo leito <span class="text-gray-400 font-normal">(opcional)</span></label>
+                <p-select
+                    formControlName="leito_id"
+                    [options]="leitosDisponiveis()"
+                    optionLabel="codigo"
+                    optionValue="id"
+                    [showClear]="true"
+                    placeholder="Selecione um leito disponível"
+                    emptyMessage="Selecione um setor com leitos disponíveis"
+                    appendTo="body"
+                    class="w-full"
+                />
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <p-button label="Cancelar" severity="secondary" type="button" (onClick)="visibleTransferencia = false" />
+                <p-button label="Transferir" type="submit" styleClass="bg-[#012059] border-[#012059]" />
+            </div>
+        </form>
+    </p-dialog>
+
+    <!-- INTRODUÇÃO ATENDIMENTOS -->
+    <div class="flex items-center">
+
+        <i
+            class="pi pi-wave-pulse p-2 bg-[#E5F4FD] text-[#046096] text-4xl rounded-xl"
+        ></i>
+
+        <div class="flex flex-col ms-3">
+
+            <h1 class="text-2xl md:text-3xl font-medium">
+                Atendimentos
+            </h1>
+
+            <p class="text-gray-500 mt-1">
+                Gerencie os atendimentos dos pacientes,
+                acompanhe o status, setor, leito e o histórico
+                de internações.
+            </p>
+
+        </div>
+
     </div>
 
-    <!-- CARDS ATENDIMENTOS -->
-     <div class="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-5 my-6 md:my-10 gap-4">
-        <div class="border rounded-xl border-gray-200 col-span-2 2xl:col-span-1">
+
+    <!-- CARDS -->
+    <div
+        class="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-5 my-6 md:my-10 gap-4"
+    >
+
+        <!-- TOTAL -->
+        <div
+            class="border rounded-xl border-gray-200 col-span-2 2xl:col-span-1"
+        >
+
             <div class="flex flex-col sm:flex-row p-3">
+
                 <div>
-                    <i class="pi pi-wave-pulse p-2 bg-[#E5F4FD] text-[#046096] text-4xl rounded-xl"></i>
+                    <i
+                        class="pi pi-wave-pulse p-2 bg-[#E5F4FD] text-[#046096] text-4xl rounded-xl"
+                    ></i>
                 </div>
+
                 <div class="mt-3 sm:mt-0 sm:ms-4">
-                    <h3 class="font-medium">Total de Atendimentos</h3>
 
-                    <div class="flex items-center gap-3">
-                        <h1 class="font-bold text-4xl mt-2 mb-1"></h1>
-                    </div>
+                    <h3 class="font-medium">
+                        Total de Atendimentos
+                    </h3>
+
+                    <h1 class="font-bold text-4xl mt-2 mb-1">
+                        {{ resumo().total }}
+                    </h1>
+
                 </div>
+
             </div>
+
         </div>
 
-        <!-- EM ATENDIMENTOS -->
+
+        <!-- EM ATENDIMENTO -->
+        <div class="border rounded-xl border-gray-200">
+
+            <div class="flex flex-col sm:flex-row p-3">
+
+                <div>
+                    <i
+                        class="pi pi-clipboard p-2 bg-[#E4F9F7] text-[#0F966E] text-4xl rounded-xl"
+                    ></i>
+                </div>
+
+                <div class="flex-1 mt-3 sm:mt-0 sm:ms-4">
+
+                    <h3 class="font-medium">
+                        Em atendimento
+                    </h3>
+
+                    <div
+                        class="flex justify-between items-end gap-3"
+                    >
+
+                        <h1
+                            class="font-bold text-4xl mt-2 mb-1"
+                        >
+                            {{ resumo().em_atendimento }}
+                        </h1>
+
+                        <p
+                            class="bg-[#E4F9F7] text-[#0F966E] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1"
+                        >
+                            {{
+                                calcularPercentual(
+                                    resumo().em_atendimento
+                                )
+                            }}%
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- OBSERVAÇÃO -->
         <div class="border rounded-xl border-gray-200">
             <div class="flex flex-col sm:flex-row p-3">
                 <div>
-                    <i class="pi pi-clipboard p-2 bg-[#E4F9F7] text-[#0F966E] text-4xl rounded-xl"></i>
+                    <i
+                        class="pi pi-eye p-2 bg-[#FEF2DC] text-[#E59930] text-4xl rounded-xl"
+                    ></i>
                 </div>
-                <div class="flex-1 mt-3 sm:mt-0 sm:ms-4">
-                    <h3 class="font-medium">Em atendimentos</h3>
 
-                    <div class="flex justify-between items-end gap-3">
-                        <h1 class="font-bold text-4xl mt-2 mb-1"></h1>
-                        <p class="bg-[#E4F9F7] text-[#0F966E] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1"></p>
+                <div class="flex-1 mt-3 sm:mt-0 sm:ms-4">
+                    <h3 class="font-medium">
+                        Em Observação
+                    </h3>
+                    <div
+                        class="flex justify-between items-end gap-3"
+                    >
+                        <h1
+                            class="font-bold text-4xl mt-2 mb-1"
+                        >
+                            {{ resumo().observacao }}
+                        </h1>
+                        <p
+                            class="bg-[#FEF2DC] text-[#E59930] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1"
+                        >
+                            {{
+                                calcularPercentual(
+                                    resumo().observacao
+                                )
+                            }}%
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- EM OBSERVAÇÃO -->
-        <div class="border rounded-xl border-gray-200">
-            <div class="flex flex-col sm:flex-row p-3">
-                <div>
-                    <i class="pi pi-eye p-2 bg-[#FEF2DC] text-[#E59930] text-4xl rounded-xl"></i>
-                </div>
-                <div class="flex-1 mt-3 sm:mt-0 sm:ms-4">
-                    <h3 class="font-medium">Em Observação</h3>
-
-                    <div class="flex justify-between items-end gap-3">
-                        <h1 class="font-bold text-4xl mt-2 mb-1"></h1>
-                        <p class="bg-[#FEF2DC] text-[#E59930] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1"></p>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- INTERNADOS -->
         <div class="border rounded-xl border-gray-200">
-            <div class="flex flex-col sm:flex-row p-3">
-                <div>
-                    <i class="pi pi-home p-2 bg-[#F5EFFE] text-[#5201BF] text-4xl rounded-xl"></i>
-                </div>
-                <div class="flex-1 mt-3 sm:mt-0 sm:ms-4">
-                    <h3 class="font-medium">Internados</h3>
 
-                    <div class="flex justify-between items-end gap-3">
-                        <h1 class="font-bold text-4xl mt-2 mb-1"></h1>
-                        <p class="bg-[#F5EFFE] text-[#5201BF] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1"></p>
-                    </div>
+            <div class="flex flex-col sm:flex-row p-3">
+
+                <div>
+                    <i
+                        class="pi pi-home p-2 bg-[#F5EFFE] text-[#5201BF] text-4xl rounded-xl"
+                    ></i>
                 </div>
+
+                <div class="flex-1 mt-3 sm:mt-0 sm:ms-4">
+
+                    <h3 class="font-medium">
+                        Internados
+                    </h3>
+
+                    <div
+                        class="flex justify-between items-end gap-3"
+                    >
+
+                        <h1
+                            class="font-bold text-4xl mt-2 mb-1"
+                        >
+                            {{ resumo().internados }}
+                        </h1>
+
+                        <p
+                            class="bg-[#F5EFFE] text-[#5201BF] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1"
+                        >
+                            {{
+                                calcularPercentual(
+                                    resumo().internados
+                                )
+                            }}%
+                        </p>
+
+                    </div>
+
+                </div>
+
             </div>
+
         </div>
+
 
         <!-- ALTAS -->
         <div class="border rounded-xl border-gray-200">
             <div class="flex flex-col sm:flex-row p-3">
-                <div>
-                    <i class="pi pi-check p-2 bg-[#E2FAF4] text-[#079A80] text-4xl rounded-xl"></i>
-                </div>
-                <div class="flex-1 mt-3 sm:mt-0 sm:ms-4">
-                    <h3 class="font-medium">Altas</h3>
 
-                    <div class="flex justify-between items-end gap-3">
-                        <h1 class="font-bold text-4xl mt-2 mb-1"></h1>
-                        <p class="bg-[#E2FAF4] text-[#079A80] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1"></p>
+                <div>
+                    <i
+                        class="pi pi-check p-2 bg-[#E2FAF4] text-[#079A80] text-4xl rounded-xl"
+                    ></i>
+                </div>
+
+                <div class="flex-1 mt-3 sm:mt-0 sm:ms-4">
+
+                    <h3 class="font-medium">
+                        Altas
+                    </h3>
+
+                    <div
+                        class="flex justify-between items-end gap-3"
+                    >
+                        <h1
+                            class="font-bold text-4xl mt-2 mb-1"
+                        >
+                            {{ resumo().altas }}
+                        </h1>
+
+                        <p
+                            class="bg-[#E2FAF4] text-[#079A80] text-sm font-semibold rounded-md px-2.5 py-0.5 mt-1"
+                        >
+                            {{
+                                calcularPercentual(
+                                    resumo().altas
+                                )
+                            }}%
+                        </p>
                     </div>
                 </div>
             </div>
@@ -98,124 +433,498 @@
     <div class="flex flex-wrap items-end gap-4 mb-6">
 
         <!-- BUSCA -->
-        <p-iconfield iconPosition="left" class="flex-1 min-w-56">
+        <p-iconfield
+            iconPosition="left"
+            class="flex-1 min-w-56"
+        >
             <p-inputicon class="pi pi-search" />
-            <input type="text" pInputText placeholder="Buscar por paciente (nome ou CPF)..." class="w-full" />
+
+            <input
+                type="text"
+                pInputText
+                placeholder="Buscar por paciente (nome ou CPF)..."
+                class="w-full"
+
+                [ngModel]="busca()"
+
+                (ngModelChange)="
+                    busca.set($event)
+                "
+
+                (keyup.enter)="
+                    listarAtendimentos()
+                "
+            />
         </p-iconfield>
 
+
         <!-- STATUS -->
-        <div class="flex flex-col gap-1 flex-1 min-w-40">
-            <label class="text-sm text-gray-600">Status</label>
-            <p-select [options]="statusOpcoes" optionLabel="nome" optionValue="valor" placeholder="Todos os status" class="w-full" />
+        <div
+            class="flex flex-col gap-1 flex-1 min-w-40"
+        >
+            <label class="text-sm text-gray-600">
+                Status
+            </label>
+
+            <p-select
+                [options]="statusOpcoes"
+
+                optionLabel="nome"
+                optionValue="valor"
+
+                [ngModel]="statusSelecionado()"
+
+                (ngModelChange)="
+                    statusSelecionado.set($event);
+                    listarAtendimentos()
+                "
+
+                placeholder="Todos os status"
+
+                class="w-full"
+            />
         </div>
+
 
         <!-- SETOR -->
-        <div class="flex flex-col gap-1 flex-1 min-w-40">
-            <label class="text-sm text-gray-600">Setor</label>
-            <p-select [options]="setorOpcoes" optionLabel="nome" optionValue="valor" placeholder="Todos os setores" class="w-full" />
+        <div
+            class="flex flex-col gap-1 flex-1 min-w-40"
+        >
+            <label class="text-sm text-gray-600">
+                Setor
+            </label>
+
+            <p-select
+                [options]="setores()"
+
+                optionLabel="nome"
+                optionValue="id"
+
+                [ngModel]="setorSelecionado()"
+
+                (ngModelChange)="
+                    setorSelecionado.set($event);
+                    listarAtendimentos()
+                "
+
+                placeholder="Todos os setores"
+
+                [showClear]="true"
+
+                class="w-full"
+            />
         </div>
 
+
         <!-- SITUAÇÃO -->
-        <div class="flex flex-col gap-1 flex-1 min-w-40">
-            <label class="text-sm text-gray-600">Situação</label>
-            <p-select [options]="situacaoOpcoes" optionLabel="nome" optionValue="valor" placeholder="Todos" class="w-full" />
+        <div
+            class="flex flex-col gap-1 flex-1 min-w-40"
+        >
+            <label class="text-sm text-gray-600">
+                Situação
+            </label>
+
+            <p-select
+                [options]="situacaoOpcoes"
+
+                optionLabel="nome"
+                optionValue="valor"
+
+                [ngModel]="situacaoSelecionada()"
+
+                (ngModelChange)="
+                    situacaoSelecionada.set($event);
+                    listarAtendimentos()
+                "
+
+                placeholder="Todos"
+
+                class="w-full"
+            />
+
         </div>
 
         <!-- AÇÕES -->
         <div class="flex gap-3 w-full sm:w-auto">
-            <p-button label="Atualizar" icon="pi pi-refresh" [outlined]="true" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap text-[#012059] border-[#012059] hover:bg-[#E6F1FC]" />
-            <p-button label="Novo Atendimento" icon="pi pi-plus" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap bg-[#012059] border-[#012059]" />
+
+            <p-button
+                label="Atualizar"
+                icon="pi pi-refresh"
+                [outlined]="true"
+
+                (onClick)="atualizarDados()"
+
+                class="flex-1 sm:flex-none"
+
+                styleClass="
+                    w-full
+                    whitespace-nowrap
+                    text-[#012059]
+                    border-[#012059]
+                    hover:bg-[#E6F1FC]
+                "
+            />
+
+            <p-button
+                label="Novo Atendimento"
+                icon="pi pi-plus"
+
+                (onClick)="abrirNovo()"
+
+                class="flex-1 sm:flex-none"
+
+                styleClass="
+                    w-full
+                    whitespace-nowrap
+                    bg-[#012059]
+                    border-[#012059]
+                "
+            />
         </div>
     </div>
 
 
     <!-- TABELA -->
-    <div class="border rounded-xl border-gray-200 overflow-hidden">
+    <div
+        class="border rounded-xl border-gray-200 overflow-hidden"
+    >
         <p-table
-            [value]="atendimentos"
+            [value]="atendimentos()"
+
+            [loading]="carregando()"
+
             [paginator]="true"
+
             [rows]="8"
+
             [rowsPerPageOptions]="[8, 16, 24]"
+
             [showCurrentPageReport]="true"
-            currentPageReportTemplate="Exibindo {first} a {last} de {totalRecords} atendimentos"
-            [tableStyle]="{ 'min-width': '70rem' }"
+
+            currentPageReportTemplate="
+                Exibindo {first} a {last}
+                de {totalRecords} atendimentos
+            "
+
+            [tableStyle]="{
+                'min-width': '70rem'
+            }"
         >
+            <!-- HEADER -->
             <ng-template #header>
                 <tr>
-                    <th pSortableColumn="paciente" class="bg-[#F1F6FC]">Paciente <p-sortIcon field="paciente" /></th>
-                    <th class="bg-[#F1F6FC]">CPF</th>
-                    <th pSortableColumn="status" class="bg-[#F1F6FC]">Status <p-sortIcon field="status" /></th>
-                    <th pSortableColumn="setor" class="bg-[#F1F6FC]">Setor <p-sortIcon field="setor" /></th>
-                    <th pSortableColumn="leito" class="bg-[#F1F6FC]">Leito <p-sortIcon field="leito" /></th>
-                    <th pSortableColumn="data_entrada" class="bg-[#F1F6FC]">Data de Entrada <p-sortIcon field="data_entrada" /></th>
-                    <th pSortableColumn="data_saida" class="bg-[#F1F6FC]">Data de Saída <p-sortIcon field="data_saida" /></th>
-                    <th class="bg-[#F1F6FC]">Situação</th>
-                    <th class="bg-[#F1F6FC] text-center">Ações</th>
+                    <th
+                        class="bg-[#F1F6FC]"
+                    >
+                        Paciente
+                    </th>
+
+                    <th
+                        class="bg-[#F1F6FC]"
+                    >
+                        CPF
+                    </th>
+
+                    <th
+                        pSortableColumn="status"
+                        class="bg-[#F1F6FC]"
+                    >
+                        Status
+
+                        <p-sortIcon
+                            field="status"
+                        />
+                    </th>
+
+                    <th
+                        class="bg-[#F1F6FC]"
+                    >
+                        Setor
+                    </th>
+
+                    <th
+                        class="bg-[#F1F6FC]"
+                    >
+                        Leito
+                    </th>
+
+                    <th
+                        pSortableColumn="data_entrada"
+                        class="bg-[#F1F6FC]"
+                    >
+                        Data de Entrada
+
+                        <p-sortIcon
+                            field="data_entrada"
+                        />
+                    </th>
+
+                    <th
+                        pSortableColumn="data_saida"
+                        class="bg-[#F1F6FC]"
+                    >
+                        Data de Saída
+
+                        <p-sortIcon
+                            field="data_saida"
+                        />
+                    </th>
+
+                    <th
+                        class="bg-[#F1F6FC]"
+                    >
+                        Situação
+                    </th>
+
+                    <th
+                        class="bg-[#F1F6FC] text-center"
+                    >
+                        Ações
+                    </th>
                 </tr>
             </ng-template>
 
+            <!-- SEM DADOS -->
             <ng-template #emptymessage>
                 <tr>
-                    <td colspan="9" class="text-center py-10 text-gray-500">
+                    <td
+                        colspan="9"
+                        class="text-center py-10 text-gray-500"
+                    >
                         Nenhum atendimento encontrado.
                     </td>
                 </tr>
+
             </ng-template>
 
-            <ng-template #body let-atendimento>
+            <!-- BODY -->
+            <ng-template #body
+                let-atendimento
+            >
                 <tr>
+                    <!-- PACIENTE -->
                     <td>
                         <div class="flex items-center gap-3">
-                            <i class="pi pi-user bg-[#E5F4FD] text-[#046096] rounded-full p-2.5"></i>
-                            <span class="font-semibold">{{ atendimento.paciente }}</span>
+                            <i
+                                class="pi pi-user bg-[#E5F4FD] text-[#046096] rounded-full p-2.5"
+                            ></i>
+
+                            <span class="font-semibold">
+                                {{ atendimento.paciente.nome }}
+                            </span>
                         </div>
                     </td>
-                    <td class="text-gray-600">{{ atendimento.cpf }}</td>
+
+                    <!-- CPF -->
+                    <td class="text-gray-600">
+
+                        {{
+                            formatarCpf(
+                                atendimento.paciente.cpf
+                            )
+                        }}
+
+                    </td>
+
+                    <!-- STATUS -->
                     <td>
                         @switch (atendimento.status) {
-                            @case ('Em atendimento') {
-                                <span class="bg-[#E5F4FD] text-[#046096] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap">
-                                    <i class="pi pi-circle-fill text-[0.5rem] me-1"></i>{{ atendimento.status }}
+                            @case ('em_atendimento') {
+
+                                <span
+                                    class="bg-[#E5F4FD] text-[#046096] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap"
+                                >
+
+                                    <i
+                                        class="pi pi-circle-fill text-[0.5rem] me-1"
+                                    ></i>
+
+                                    Em atendimento
+
                                 </span>
+
                             }
-                            @case ('Observação') {
-                                <span class="bg-[#FEF2DC] text-[#E59930] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap">
-                                    <i class="pi pi-circle-fill text-[0.5rem] me-1"></i>{{ atendimento.status }}
+
+                            @case ('observacao') {
+
+                                <span
+                                    class="bg-[#FEF2DC] text-[#E59930] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap"
+                                >
+
+                                    <i
+                                        class="pi pi-circle-fill text-[0.5rem] me-1"
+                                    ></i>
+
+                                    Em observação
+
                                 </span>
+
                             }
-                            @case ('Internado') {
-                                <span class="bg-[#F5EFFE] text-[#5201BF] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap">
-                                    <i class="pi pi-circle-fill text-[0.5rem] me-1"></i>{{ atendimento.status }}
+
+                            @case ('internado') {
+
+                                <span
+                                    class="bg-[#F5EFFE] text-[#5201BF] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap"
+                                >
+
+                                    <i
+                                        class="pi pi-circle-fill text-[0.5rem] me-1"
+                                    ></i>
+
+                                    Internado
+
                                 </span>
+
                             }
-                            @case ('Alta') {
-                                <span class="bg-[#E2FAF4] text-[#079A80] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap">
-                                    <i class="pi pi-circle-fill text-[0.5rem] me-1"></i>{{ atendimento.status }}
+
+                            @case ('alta') {
+
+                                <span
+                                    class="bg-[#E2FAF4] text-[#079A80] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap"
+                                >
+
+                                    <i
+                                        class="pi pi-circle-fill text-[0.5rem] me-1"
+                                    ></i>
+
+                                    Alta
+
                                 </span>
+
                             }
                         }
                     </td>
+
+                    <!-- SETOR -->
                     <td class="whitespace-nowrap">
-                        <i class="pi pi-building text-gray-500 me-2"></i>{{ atendimento.setor }}
+
+                        <i
+                            class="pi pi-building text-gray-500 me-2"
+                        ></i>
+
+                        {{
+                            atendimento.setor?.nome
+                            ?? '—'
+                        }}
+
                     </td>
-                    <td>{{ atendimento.leito }}</td>
-                    <td class="text-gray-600 whitespace-nowrap">{{ atendimento.data_entrada }}</td>
-                    <td class="text-gray-600 whitespace-nowrap">{{ atendimento.data_saida }}</td>
+
+                    <!-- LEITO -->
                     <td>
-                        @if (atendimento.situacao === 'Em aberto') {
-                            <span class="bg-[#E4F9F7] text-[#0F966E] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap">Em aberto</span>
+
+                        {{
+                            atendimento.leito?.codigo
+                            ?? '—'
+                        }}
+
+                    </td>
+
+                    <!-- ENTRADA -->
+                    <td
+                        class="text-gray-600 whitespace-nowrap"
+                    >
+
+                        {{
+                            atendimento.data_entrada
+                            | date:'dd/MM/yyyy HH:mm'
+                        }}
+
+                    </td>
+
+                    <!-- SAÍDA -->
+                    <td
+                        class="text-gray-600 whitespace-nowrap"
+                    >
+
+                        @if (atendimento.data_saida) {
+
+                            {{
+                                atendimento.data_saida
+                                | date:'dd/MM/yyyy HH:mm'
+                            }}
+
                         } @else {
-                            <span class="bg-gray-100 text-gray-600 text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap">Encerrado</span>
+
+                            <span
+                                class="text-gray-400"
+                            >
+                                —
+                            </span>
+
                         }
+
                     </td>
+
+                    <!-- SITUAÇÃO -->
                     <td>
-                        <div class="flex justify-center gap-2">
-                            <p-button icon="pi pi-eye" [outlined]="true" size="small" />
-                            @if (atendimento.situacao === 'Em aberto') {
-                                <p-button icon="pi pi-pencil" [outlined]="true" size="small" />
-                                <p-button icon="pi pi-arrow-right-arrow-left" [outlined]="true" size="small" />
+
+                        @if (!atendimento.data_saida) {
+
+                            <span
+                                class="bg-[#E4F9F7] text-[#0F966E] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap"
+                            >
+                                Em aberto
+                            </span>
+
+                        } @else {
+
+                            <span
+                                class="bg-gray-100 text-gray-600 text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap"
+                            >
+                                Encerrado
+                            </span>
+
+                        }
+
+                    </td>
+
+                    <!-- AÇÕES -->
+                    <td>
+
+                        <div
+                            class="flex justify-center gap-2"
+                        >
+
+                            <p-button
+                                icon="pi pi-eye"
+                                [outlined]="true"
+                                size="small"
+                                (onClick)="abrirDetalhes(atendimento)"
+                            />
+
+
+                            @if (!atendimento.data_saida) {
+
+                                <p-button
+                                    icon="pi pi-pencil"
+                                    [outlined]="true"
+                                    size="small"
+                                    (onClick)="abrirAlterarStatus(atendimento)"
+                                />
+
+                                <p-button
+                                    icon="pi pi-arrow-right-arrow-left"
+                                    [outlined]="true"
+                                    size="small"
+                                    (onClick)="abrirTransferencia(atendimento)"
+                                />
+
+                                <p-button
+                                    icon="pi pi-sign-out"
+                                    severity="success"
+                                    [outlined]="true"
+                                    size="small"
+                                    (onClick)="darAlta(atendimento)"
+                                />
+
                             } @else {
-                                <p-button icon="pi pi-file" [outlined]="true" size="small" />
+
+                                <p-button
+                                    icon="pi pi-file"
+                                    [outlined]="true"
+                                    size="small"
+                                />
+
                             }
                         </div>
                     </td>
@@ -223,3 +932,4 @@
             </ng-template>
         </p-table>
     </div>
+</section>

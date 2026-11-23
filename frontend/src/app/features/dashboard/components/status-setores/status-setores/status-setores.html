@@ -1,28 +1,48 @@
 <section class="h-full">
     <div class="border rounded-xl border-gray-200 p-4 h-full">
         <div class="flex justify-between mb-2">
-            <h1 class="text-xl font-medium">Status dos Setores</h1>
+            <h1 class="text-xl font-medium">Distribuição dos Atendimentos</h1>
         </div>
 
         <div>
-            <div class="flex justify-between items-center py-3 border-b border-gray-200">
-                <h2 class="text-lg font-medium">Pronto-Socorro</h2>
-                <p-tag icon="pi pi-check" severity="success" value="Estável" />
+            <div class="py-3 border-b border-gray-200">
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="pi pi-circle-fill text-xs text-[#046096]"></i>
+                    <h2 class="flex-1 font-medium">Em atendimento</h2>
+                    <p class="font-bold text-xl">28</p>
+                    <p class="bg-[#E5F4FD] text-[#046096] text-sm font-semibold rounded-md px-2.5 py-0.5">34%</p>
+                </div>
+                <p-progressbar [value]="34" [showValue]="false" color="#046096" [style]="{ height: '8px' }" />
             </div>
 
-            <div class="flex justify-between items-center py-3 border-b border-gray-200">
-                <h2 class="text-lg font-medium">UTI</h2>
-                <p-tag icon="pi pi-exclamation-triangle" severity="warn" value="Atenção" />
+            <div class="py-3 border-b border-gray-200">
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="pi pi-circle-fill text-xs text-[#E59930]"></i>
+                    <h2 class="flex-1 font-medium">Observação</h2>
+                    <p class="font-bold text-xl">12</p>
+                    <p class="bg-[#FEF2DC] text-[#E59930] text-sm font-semibold rounded-md px-2.5 py-0.5">15%</p>
+                </div>
+                <p-progressbar [value]="15" [showValue]="false" color="#E59930" [style]="{ height: '8px' }" />
             </div>
 
-            <div class="flex justify-between items-center py-3 border-b border-gray-200">
-                <h2 class="text-lg font-medium">Enfermaria</h2>
-                <p-tag icon="pi pi-check" severity="success" value="Estável" />
+            <div class="py-3 border-b border-gray-200">
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="pi pi-circle-fill text-xs text-[#5201BF]"></i>
+                    <h2 class="flex-1 font-medium">Internados</h2>
+                    <p class="font-bold text-xl">24</p>
+                    <p class="bg-[#F5EFFE] text-[#5201BF] text-sm font-semibold rounded-md px-2.5 py-0.5">29%</p>
+                </div>
+                <p-progressbar [value]="29" [showValue]="false" color="#5201BF" [style]="{ height: '8px' }" />
             </div>
 
-            <div class="flex justify-between items-center pt-3">
-                <h2 class="text-lg font-medium">Centro Cirúrgico</h2>
-                <p-tag icon="pi pi-check" severity="success" value="Estável" />
+            <div class="pt-3">
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="pi pi-circle-fill text-xs text-[#079A80]"></i>
+                    <h2 class="flex-1 font-medium">Altas</h2>
+                    <p class="font-bold text-xl">18</p>
+                    <p class="bg-[#E2FAF4] text-[#079A80] text-sm font-semibold rounded-md px-2.5 py-0.5">22%</p>
+                </div>
+                <p-progressbar [value]="22" [showValue]="false" color="#079A80" [style]="{ height: '8px' }" />
             </div>
         </div>
     </div>

@@ -8,7 +8,7 @@ import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { DialogModule } from 'primeng/dialog';
 import { Paciente } from '../../services/paciente.service';
-import { CriarPacienteRequest, FiltrosPaciente, PacienteResponse, ResumoPacientesResponse } from '../../models/paciente.models';
+import { CriarPacienteRequest, FiltrosPaciente, PacienteResponse, ResumoPacientesResponse, PacienteListagemResponse } from '../../models/paciente.models';
 
 @Component({
   selector: 'app-pacientes',
@@ -30,7 +30,7 @@ export class Pacientes implements OnInit {
   busca = signal('');
   carregando = signal(false);
   situacaoSelecionada = signal<boolean | null>(null);
-  pacientes = signal<PacienteResponse[]>([])
+  pacientes = signal<PacienteListagemResponse[]>([])
 
   //INJECAO DE SERVICES
   private pacienteService = inject(Paciente)
@@ -120,7 +120,8 @@ export class Pacientes implements OnInit {
       validators: [
         Validators.required,
         Validators.minLength(11),
-        Validators.maxLength(11)
+        Validators.maxLength(11),
+        Validators.pattern(/^\d{11}$/)
       ]
     }),
 

@@ -1,7 +1,8 @@
-from sqlalchemy import select, or_, func
-from sqlalchemy.orm import Session
+from sqlalchemy import select, or_, func, and_
+from sqlalchemy.orm import Session, selectinload
 from schemas.pacientes import CriarPaciente, AtualizarPaciente
 from models.paciente import PacienteDB
+from models.atendimento import AtendimentoDB
 from exceptions import CpfPacienteJaExiste, PacienteNaoExiste
 
 
@@ -29,17 +30,26 @@ def criar_paciente_service(db: Session, dados: CriarPaciente):
 
 
 def listar_pacientes_service(db: Session, busca: str | None = None, ativo: bool | None = None):
-    comando = select(PacienteDB)
+    comando = (
+        select(PacienteDB, AtendimentoDB)
+        .outerjoin(
+            AtendimentoDB,
+            and_(
+                AtendimentoDB.paciente_id == PacienteDB.id,
+                AtendimentoDB.data_saida.is_(None)
+            )
+        )
+        .options(
+            selectinload(AtendimentoDB.setor),
+            selectinload(AtendimentoDB.leito)
+        )
+    )
 
     if busca:
         comando = comando.where(
             or_(
-                PacienteDB.nome.ilike(
-                    f"%{busca}%"
-                ),
-                PacienteDB.cpf.ilike(
-                    f"%{busca}%"
-                )
+                PacienteDB.nome.ilike(f"%{busca}%"),
+                PacienteDB.cpf.ilike(f"%{busca}%")
             )
         )
 
@@ -48,9 +58,26 @@ def listar_pacientes_service(db: Session, busca: str | None = None, ativo: bool 
             PacienteDB.ativo == ativo
         )
 
-    lista_de_pacientes = db.scalars(comando).all()
+    resultado = db.execute(comando).all()
 
-    return lista_de_pacientes
+    pacientes = []
+
+    for paciente, atendimento in resultado:
+
+        pacientes.append({
+            "id": paciente.id,
+            "nome": paciente.nome,
+            "cpf": paciente.cpf,
+            "data_nascimento": paciente.data_nascimento,
+            "ativo": paciente.ativo,
+            "atendimento_atual": atendimento
+        })
+
+    return pacientes     
+
+
+
+
 
 
 def atualizar_paciente_service(db: Session, paciente_id: int, dados: AtualizarPaciente):

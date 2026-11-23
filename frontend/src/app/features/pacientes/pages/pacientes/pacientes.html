@@ -139,11 +139,11 @@
                 <tr>
                     <th pSortableColumn="nome" class="bg-[#F1F6FC]">Nome <p-sortIcon field="nome" /></th>
                     <th class="bg-[#F1F6FC]">CPF</th>
-                    <th pSortableColumn="leito" class="bg-[#F1F6FC]">Data de Nascimento <p-sortIcon field="leito" /></th>
-                    <th pSortableColumn="ativo" class="bg-[#F1F6FC]">Setor Atual<p-sortIcon field="ativo" /></th>
-                    <th pSortableColumn="ativo" class="bg-[#F1F6FC]">Leito Atual<p-sortIcon field="ativo" /></th>
-                    <th pSortableColumn="status" class="bg-[#F1F6FC]">Situação Atual<p-sortIcon field="status" /></th>
-                    <th pSortableColumn="status" class="bg-[#F1F6FC]">Ativo<p-sortIcon field="status" /></th>
+                    <th pSortableColumn="data_nascimento" class="bg-[#F1F6FC]">Data de Nascimento <p-sortIcon field="data_nascimento" /></th>
+                    <th class="bg-[#F1F6FC]">Setor Atual</th>
+                    <th class="bg-[#F1F6FC]">Leito Atual</th>
+                    <th class="bg-[#F1F6FC]">Situação Atual</th>
+                    <th pSortableColumn="ativo" class="bg-[#F1F6FC]">Ativo <p-sortIcon field="ativo" /></th>
                     <th class="bg-[#F1F6FC] text-center">Ações</th>
                 </tr>
             </ng-template>
@@ -162,13 +162,57 @@
                     <td class="text-gray-600">{{ formatarCpf(paciente.cpf) }}</td>
                     <td class="text-gray-600">{{ formatarData(paciente.data_nascimento) }}</td>
                     <td>
-                        <i class="pi pi-building text-gray-500 me-2"></i>--
+                        <i class="pi pi-building text-gray-500 me-2"></i>
+
+                        {{ paciente.atendimento_atual?.setor?.nome ?? '-' }}
                     </td>
-                    <td>--</td>
+                    <td> {{ paciente.atendimento_atual?.leito?.codigo ?? '-' }} </td>
                     <td>
-                        <span class="text-sm font-semibold rounded-full px-2.5 py-1">
-                            <i class="pi pi-circle-fill text-[0.5rem] me-1"></i>--
+                         @if (!paciente.atendimento_atual) {
+
+                        <span
+                            class="bg-gray-100 text-gray-500 text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap"
+                        >
+                            Sem atendimento
                         </span>
+
+                    } @else {
+
+                        @switch (paciente.atendimento_atual.status) {
+
+                            @case ('em_atendimento') {
+
+                                <span
+                                    class="bg-[#E5F4FD] text-[#046096] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap"
+                                >
+                                    Em atendimento
+                                </span>
+
+                            }
+
+                            @case ('observacao') {
+
+                                <span
+                                    class="bg-[#FEF2DC] text-[#E59930] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap"
+                                >
+                                    Em observação
+                                </span>
+
+                            }
+
+                            @case ('internado') {
+
+                                <span
+                                    class="bg-[#F5EFFE] text-[#5201BF] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap"
+                                >
+                                    Internado
+                                </span>
+
+                            }
+
+                        }
+
+                    }
                     </td>
                     <td>
                         @if (paciente.ativo) {

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from database import get_db
-from schemas.pacientes import CriarPaciente, RespostaPaciente, AtualizarPaciente, AlterarSituacaoPaciente, ResumoPacientes
+from schemas.pacientes import CriarPaciente, RespostaPaciente, AtualizarPaciente, AlterarSituacaoPaciente, ResumoPacientes, RespostaPacienteListagem
 from services.paciente_service import criar_paciente_service, listar_pacientes_service, atualizar_paciente_service, alterar_situacao_paciente_service, resumo_pacientes_service
 
 
@@ -24,7 +24,7 @@ def criar_paciente(dados: CriarPaciente, db: Session = Depends(get_db)):
     )
 
 
-@router.get("/", response_model=list[RespostaPaciente])
+@router.get("/", response_model=list[RespostaPacienteListagem])
 def listar_pacientes(busca: str | None = None, ativo: bool | None = None, db: Session = Depends(get_db)):
     return listar_pacientes_service(
         db=db,

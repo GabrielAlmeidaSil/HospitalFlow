@@ -5,7 +5,8 @@ import {
   CriarPacienteRequest,
   AtualizarPacienteRequest,
   FiltrosPaciente,
-  ResumoPacientesResponse
+  ResumoPacientesResponse,
+  PacienteListagemResponse
 } from '../models/paciente.models';
 
 @Injectable({
@@ -31,7 +32,7 @@ export class Paciente {
       params['ativo'] = filtros.ativo
     }
 
-    return this.http.get<PacienteResponse[]>(
+    return this.http.get<PacienteListagemResponse[]>(
       `${this.apiUrl}/`,
       { params }
     );

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 from datetime import date
+from models.atendimento import StatusAtendimento
 
 class CriarPaciente(BaseModel):
     nome: str = Field(min_length=3, max_length=120)
@@ -51,3 +52,35 @@ class ResumoPacientes(BaseModel):
     total: int
     ativos: int
     inativos: int
+
+
+class SetorAtualPaciente(BaseModel):
+    id: int
+    nome: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class LeitoAtualPaciente(BaseModel):
+    id: int
+    codigo: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AtendimentoAtualPaciente(BaseModel):
+    id: int
+    status: StatusAtendimento
+    setor: SetorAtualPaciente | None
+    leito: LeitoAtualPaciente | None
+
+
+class RespostaPacienteListagem(BaseModel):
+    id: int
+    nome: str
+    cpf: str
+    data_nascimento: date
+    ativo: bool
+    atendimento_atual: AtendimentoAtualPaciente | None
+
+    model_config = ConfigDict(from_attributes=True)

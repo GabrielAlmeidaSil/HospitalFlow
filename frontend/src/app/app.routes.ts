@@ -7,6 +7,7 @@ import { Pacientes } from './features/pacientes/pages/pacientes/pacientes';
 import { Leitos } from './features/leitos/pages/leitos/leitos';
 import { Ocorrencias } from './features/ocorrencias/pages/ocorrencias/ocorrencias';
 import { Relatorios } from './features/relatorios/pages/relatorios/relatorios';
+import { Atendimentos } from './features/atendimentos/pages/atendimentos/atendimentos';
 
 export const routes: Routes = [
     {
@@ -28,6 +29,7 @@ export const routes: Routes = [
             { path: 'leitos', component: Leitos },
             { path: 'ocorrencias', component: Ocorrencias },
             { path: 'relatorios', component: Relatorios },
+            { path: 'atendimentos', component: Atendimentos },
         ]
     }
 ];

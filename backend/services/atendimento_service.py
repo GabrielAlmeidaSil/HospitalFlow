@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from schemas.atendimento import CriarAtendimento
-from models.atendimento import AtendimentoDB
+from models.atendimento import AtendimentoDB, StatusAtendimento
 from models.paciente import PacienteDB
 from models.setor import SetorDB
 from models.leito import LeitoDB, StatusLeito
@@ -109,3 +109,46 @@ def criar_atendimento_service(
     db.refresh(novo_atendimento)
 
     return novo_atendimento
+
+
+def listar_atendimento_service(
+        db: Session, 
+        status: StatusAtendimento | None = None, 
+        paciente_id: int | None = None,
+        setor_id: int | None = None,
+        aberto: bool | None = None
+    ):
+
+    comando = select(AtendimentoDB)
+
+    if status is not None:
+        comando = comando.where(
+            AtendimentoDB.status == status
+        )
+
+    if paciente_id is not None:
+        comando = comando.where(
+            AtendimentoDB.paciente_id == paciente_id
+        )
+
+    if setor_id is not None:
+        comando = comando.where(
+            AtendimentoDB.setor_id == setor_id
+        )
+
+    if aberto is not None:
+        if aberto:
+            comando = comando.where(
+                AtendimentoDB.data_saida.is_(None)
+            )
+        else:
+            comando = comando.where(
+                AtendimentoDB.data_saida.is_not(None)
+            )
+
+    comando = comando.order_by(
+        AtendimentoDB.data_entrada.desc()
+    )
+
+
+    return db.scalars(comando).all()

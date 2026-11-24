@@ -159,3 +159,67 @@ def ocupacao_setores_service(db: Session):
 
     return setores
 
+
+def distribuicao_atendimentos_service(db: Session):
+
+    comando = (
+        select(
+            AtendimentoDB.status,
+
+            func.count(
+                AtendimentoDB.id
+            ).label("quantidade")
+        )
+        .where(
+            AtendimentoDB.data_saida.is_(None)
+        ).group_by(
+            AtendimentoDB.status
+        )
+    )
+
+    resultado = db.execute(
+        comando
+    ).mappings().all()
+
+
+    constagens = {
+        item["status"]: item["quantidade"]
+        for item in resultado
+    }
+
+
+    status_abertos = [
+        StatusAtendimento.em_atendimento,
+        StatusAtendimento.observacao,
+        StatusAtendimento.internado,
+    ]
+
+    total = sum(
+        constagens.get(status, 0)
+        for status in status_abertos
+    )
+
+
+    distribuicao = []
+
+    for status in status_abertos:
+        quantidade = constagens.get(
+            status,
+            0
+        )
+
+        if total == 0:
+            porcentagem_ocupacao = 0.0
+        else:
+            porcentagem_ocupacao = round(
+                (quantidade / total) * 100, 2
+            )
+
+        distribuicao.append({
+            "status": status,
+            "quantidade": quantidade,
+            "porcentagem_ocupacao": porcentagem_ocupacao
+        })
+
+    
+    return distribuicao

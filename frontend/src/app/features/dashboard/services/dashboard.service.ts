@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { ResumoDashboardResponse, OcupacaoSetorResponse } from '../models/dashboard.model';
+import { ResumoDashboardResponse, OcupacaoSetorResponse, DistribuicaoAtendimentosResponse } from '../models/dashboard.model';
 
 @Injectable({
   providedIn: 'root',
@@ -21,6 +21,12 @@ export class DashboardService {
   ocupacaoPorSetores() {
     return this.http.get<OcupacaoSetorResponse[]>(
       `${this.apiUrl}/ocupacao-setores`
+    );
+  }
+
+  distribuicaoAtendimentos() {
+    return this.http.get<DistribuicaoAtendimentosResponse[]>(
+      `${this.apiUrl}/distribuicao-atendimentos`
     );
   }
 

@@ -6,6 +6,7 @@ import { CardStatus } from '../../components/card-status/card-status/card-status
 import { OcorrenciasRecentes } from '../../components/ocorrencias-recentes/ocorrencias-recentes/ocorrencias-recentes';
 import { StatusSetores } from '../../components/status-setores/status-setores/status-setores';
 import { OcupacaoSetorResponse } from '../../models/dashboard.model';
+import { DistribuicaoAtendimentosResponse } from '../../models/dashboard.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -27,10 +28,12 @@ export class Dashboard implements OnInit {
   })
 
   ocupacaoPorSetores = signal<OcupacaoSetorResponse[]>([])
+  distribuicaoAtendimentos = signal<DistribuicaoAtendimentosResponse[]>([])
 
   ngOnInit(): void {
     this.carregarResumo()
     this.carregarOcupacaoPorSetores()
+    this.carregarDistribuicaoAtendimentos()
   }
 
   carregarResumo() {
@@ -56,6 +59,19 @@ export class Dashboard implements OnInit {
         console.error('Erro ao carregar os setores ocupados: ', erro)
       }
     });
+  }
+
+
+  carregarDistribuicaoAtendimentos() {
+    this.dashboardService.distribuicaoAtendimentos().subscribe({
+      next: (distribuicao) => {
+        this.distribuicaoAtendimentos.set(distribuicao)
+      },
+
+      error: (erro) => {
+        console.error('Erro ao carregar distribuicao de atendimentos: ', erro)
+      }
+    })
   }
 
 }

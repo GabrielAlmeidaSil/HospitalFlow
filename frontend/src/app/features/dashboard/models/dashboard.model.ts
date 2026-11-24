@@ -14,3 +14,15 @@ export interface OcupacaoSetorResponse {
     leitos_ocupados: number;
     porcentagem_ocupacao: number;
 }
+
+export type StatusDistribuicaoAtendimento =
+    | "em_atendimento"
+    | "observacao"
+    | "internado";
+
+
+export interface DistribuicaoAtendimentosResponse {
+    status: StatusDistribuicaoAtendimento;
+    quantidade: number;
+    porcentagem_ocupacao: number;
+}

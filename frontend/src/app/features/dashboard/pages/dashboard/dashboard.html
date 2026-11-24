@@ -8,7 +8,7 @@
         <app-card-status [resumo]="resumo()"></app-card-status>
 
         <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
-            <app-ocupacao-leitos></app-ocupacao-leitos>
+            <app-ocupacao-leitos [ocupacaoSetores]="ocupacaoPorSetores()"></app-ocupacao-leitos>
             <app-ocorrencias-recentes></app-ocorrencias-recentes>
             <app-status-setores></app-status-setores>
         </div>

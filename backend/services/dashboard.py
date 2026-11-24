@@ -2,8 +2,9 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 from models.leito import LeitoDB, StatusLeito
 from models.atendimento import AtendimentoDB, StatusAtendimento
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+from models.setor import SetorDB
 
 
 def resumo_dashboard_service(db: Session):
@@ -87,3 +88,74 @@ def resumo_dashboard_service(db: Session):
         "pacientes_em_atendimento": pacientes_em_atendimento,
         "altas_hoje": altas_hoje
     }
+
+
+def ocupacao_setores_service(db: Session):
+    comando_leitos = (
+        select(
+            SetorDB.id.label("setor_id"),
+            SetorDB.nome.label("setor_nome"),
+
+            func.count(LeitoDB.id)
+            .filter(
+                LeitoDB.ativo.is_(True)
+            ).label("leitos_total"),
+
+            func.count(LeitoDB.id)
+            .filter(
+                LeitoDB.ativo.is_(True),
+                LeitoDB.status == StatusLeito.ocupado
+            ).label("leitos_ocupados")
+        ).outerjoin(
+            LeitoDB,
+            LeitoDB.setor_id == SetorDB.id
+        ).where(
+            SetorDB.ativo.is_(True)
+        ).group_by(
+            SetorDB.id,
+            SetorDB.nome
+        )
+    )
+
+
+    resultado_leitos = db.execute(
+        comando_leitos
+    ).mappings().all()
+
+
+    setores = []
+
+    for item in resultado_leitos:
+        leitos_total = item["leitos_total"]
+        leitos_ocupados = item["leitos_ocupados"]
+
+        if leitos_total == 0:
+            porcentagem_ocupacao = 0.0
+
+        else:
+
+            porcentagem_ocupacao = round(
+                (leitos_ocupados / leitos_total) * 100,2
+            )
+
+
+        setores.append({
+            "setor_id":
+                item["setor_id"],
+
+            "setor_nome":
+                item["setor_nome"],
+
+            "leitos_total":
+                leitos_total,
+
+            "leitos_ocupados":
+                leitos_ocupados,
+
+            "porcentagem_ocupacao":
+                porcentagem_ocupacao
+        })
+
+
+    return setores
+

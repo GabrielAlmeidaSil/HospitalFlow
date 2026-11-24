@@ -6,3 +6,11 @@ export interface ResumoDashboardResponse {
     pacientes_em_atendimento: number;
     altas_hoje: number;
 }
+
+export interface OcupacaoSetorResponse {
+    setor_id: number;
+    setor_nome: string;
+    leitos_total: number;
+    leitos_ocupados: number;
+    porcentagem_ocupacao: number;
+}

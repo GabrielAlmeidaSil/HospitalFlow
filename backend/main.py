@@ -28,6 +28,7 @@ from routes.setor import router as setor_router
 from routes.leito import router as leito_router
 from routes.paciente import router as paciente_router
 from routes.atendimento import router as atendimento_router
+from routes.dashboard import router as dashboard_router
 
 app = FastAPI(
     title="HospitalFlow API",
@@ -228,3 +229,4 @@ app.include_router(setor_router)
 app.include_router(leito_router)
 app.include_router(paciente_router)
 app.include_router(atendimento_router)
+app.include_router(dashboard_router)

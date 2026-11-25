@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from schemas.dashboard import ResumoDashboard, OcupacaoPorSetor, DistribuicaoAtendimentos
-from services.dashboard import resumo_dashboard_service, ocupacao_setores_service, distribuicao_atendimentos_service
+from schemas.dashboard import ResumoDashboard, OcupacaoPorSetor, DistribuicaoAtendimentos, AtendimentosRecentes
+from services.dashboard import resumo_dashboard_service, ocupacao_setores_service, distribuicao_atendimentos_service, atendimentos_recentes_service
 from database import get_db
 
 
@@ -25,5 +25,12 @@ def ocupacao_por_setor(db: Session = Depends(get_db)):
 @router.get("/distribuicao-atendimentos", response_model=list[DistribuicaoAtendimentos])
 def distribuicao_atendimentos(db: Session = Depends(get_db)):
     return distribuicao_atendimentos_service(
+        db=db
+    )
+
+
+@router.get("/atendimentos-recentes", response_model=list[AtendimentosRecentes])
+def atendimentos_recentes(db: Session = Depends(get_db)):
+    return atendimentos_recentes_service(
         db=db
     )

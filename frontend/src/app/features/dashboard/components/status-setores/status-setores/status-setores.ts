@@ -6,7 +6,7 @@ import { DistribuicaoAtendimentosResponse, StatusDistribuicaoAtendimento } from 
   selector: 'app-status-setores',
   imports: [ProgressBarModule],
   templateUrl: './status-setores.html',
-  styleUrl: './status-setores.scss',
+  styleUrl: './status-setores.scss', 
 })
 export class StatusSetores {
 

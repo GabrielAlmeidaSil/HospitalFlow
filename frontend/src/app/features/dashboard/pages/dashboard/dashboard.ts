@@ -1,12 +1,10 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { DashboardService } from '../../services/dashboard.service';
-import { ResumoDashboardResponse } from '../../models/dashboard.model';
 import { OcupacaoLeitos } from '../../components/ocupacao-leitos/ocupacao-leitos/ocupacao-leitos';
 import { CardStatus } from '../../components/card-status/card-status/card-status';
 import { OcorrenciasRecentes } from '../../components/ocorrencias-recentes/ocorrencias-recentes/ocorrencias-recentes';
 import { StatusSetores } from '../../components/status-setores/status-setores/status-setores';
-import { OcupacaoSetorResponse } from '../../models/dashboard.model';
-import { DistribuicaoAtendimentosResponse } from '../../models/dashboard.model';
+import { ResumoDashboardResponse, OcupacaoSetorResponse, DistribuicaoAtendimentosResponse, AtendimentosRecentesResponse } from '../../models/dashboard.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -29,11 +27,13 @@ export class Dashboard implements OnInit {
 
   ocupacaoPorSetores = signal<OcupacaoSetorResponse[]>([])
   distribuicaoAtendimentos = signal<DistribuicaoAtendimentosResponse[]>([])
+  atendimentosRecentes = signal<AtendimentosRecentesResponse[]>([])
 
   ngOnInit(): void {
     this.carregarResumo()
     this.carregarOcupacaoPorSetores()
     this.carregarDistribuicaoAtendimentos()
+    this.carregarAtendimentosRecentes()
   }
 
   carregarResumo() {
@@ -71,7 +71,20 @@ export class Dashboard implements OnInit {
       error: (erro) => {
         console.error('Erro ao carregar distribuicao de atendimentos: ', erro)
       }
-    })
+    });
+  }
+
+
+  carregarAtendimentosRecentes() {
+    this.dashboardService.atendimentosRecentes().subscribe({
+      next: (atendimentos) => {
+        this.atendimentosRecentes.set(atendimentos)
+      },
+
+      error: (erro) => {
+        console.log('Erro ao carregar os atendimentos recentes: ', erro)
+      }
+    });
   }
 
 }

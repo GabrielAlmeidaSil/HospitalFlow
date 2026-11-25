@@ -5,73 +5,33 @@
         </div>
 
         <div class="flex flex-col gap-4">
-            <div class="flex items-center border-b border-gray-200 pb-4">
-                <div class="me-3">
-                    <i class="pi pi-user text-xl bg-[#E5F4FD] text-[#046096] p-2.5 rounded-lg"></i>
-                </div>
-                <div class="flex-1">
-                    <div class="flex justify-between gap-2">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <h2 class="font-medium">Maria Silva Santos</h2>
-                            <span class="bg-[#E5F4FD] text-[#046096] text-xs font-semibold rounded-full px-2 py-0.5">Em atendimento</span>
-                        </div>
-                        <p class="text-gray-500 text-sm whitespace-nowrap">há 12 min</p>
+            
+            @for(
+                item of atendimentosRecentes();
+                track item.id
+            ) {
+                <div class="flex items-center border-b border-gray-200 pb-4">
+                    <div class="me-3">
+                        <i class="pi pi-user text-xl bg-[#E5F4FD] text-[#046096] p-2.5 rounded-lg"></i>
                     </div>
-
-                    <p class="text-gray-500 text-sm">Pronto-Socorro • Leito PS-08</p>
-                </div>
-            </div>
-
-            <div class="flex items-center border-b border-gray-200 pb-4">
-                <div class="me-3">
-                    <i class="pi pi-user text-xl bg-[#E5F4FD] text-[#046096] p-2.5 rounded-lg"></i>
-                </div>
-                <div class="flex-1">
-                    <div class="flex justify-between gap-2">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <h2 class="font-medium">João Pereira Lima</h2>
-                            <span class="bg-[#FEF2DC] text-[#E59930] text-xs font-semibold rounded-full px-2 py-0.5">Observação</span>
+                    <div class="flex-1">
+                        <div class="flex justify-between gap-2">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h2 class="font-medium">{{ item.paciente_nome }}</h2>
+                                <span class="text-xs font-semibold rounded-full px-2 py-0.5" [style.color]="corStatus(item.status)" [class]="backgroundStatus(item.status)">{{ item.status }}</span>
+                            </div>
+                            <p class="text-gray-500 text-sm whitespace-nowrap">{{ tempoDeEntrada(item.data_entrada) }}</p>
                         </div>
-                        <p class="text-gray-500 text-sm whitespace-nowrap">há 19 min</p>
+
+                        <p class="text-gray-500 text-sm">{{ item.setor_nome ?? 'Sem setor' }} • Leito {{ item.leito_codigo ?? 'Sem leito' }}</p>
                     </div>
-
-                    <p class="text-gray-500 text-sm">Pronto-Socorro • Leito PS-12</p>
                 </div>
-            </div>
+            } @empty {
+                <p class="text-gray-500 text-center py-8">
+                    Nenhum atendimento recente.
+                </p>
+            }
 
-            <div class="flex items-center border-b border-gray-200 pb-4">
-                <div class="me-3">
-                    <i class="pi pi-user text-xl bg-[#E5F4FD] text-[#046096] p-2.5 rounded-lg"></i>
-                </div>
-                <div class="flex-1">
-                    <div class="flex justify-between gap-2">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <h2 class="font-medium">Ana Beatriz Costa</h2>
-                            <span class="bg-[#F5EFFE] text-[#5201BF] text-xs font-semibold rounded-full px-2 py-0.5">Internado</span>
-                        </div>
-                        <p class="text-gray-500 text-sm whitespace-nowrap">há 27 min</p>
-                    </div>
-
-                    <p class="text-gray-500 text-sm">UTI • Leito UTI-05</p>
-                </div>
-            </div>
-
-            <div class="flex items-center">
-                <div class="me-3">
-                    <i class="pi pi-user text-xl bg-[#E5F4FD] text-[#046096] p-2.5 rounded-lg"></i>
-                </div>
-                <div class="flex-1">
-                    <div class="flex justify-between gap-2">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <h2 class="font-medium">Carlos Edson Alves</h2>
-                            <span class="bg-[#E2FAF4] text-[#079A80] text-xs font-semibold rounded-full px-2 py-0.5">Alta</span>
-                        </div>
-                        <p class="text-gray-500 text-sm whitespace-nowrap">há 41 min</p>
-                    </div>
-
-                    <p class="text-gray-500 text-sm">Enfermaria • Leito ENF-34</p>
-                </div>
-            </div>
         </div>
     </div>
 </section>

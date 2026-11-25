@@ -26,3 +26,20 @@ export interface DistribuicaoAtendimentosResponse {
     quantidade: number;
     porcentagem_ocupacao: number;
 }
+
+
+export type StatusAtendimentosRecentes = 
+    | "em_atendimento"
+    | "observacao"
+    | "internado"
+    | "alta";
+
+
+export interface AtendimentosRecentesResponse {
+    id: number;
+    paciente_nome: string;
+    status: StatusAtendimentosRecentes;
+    setor_nome: string | null;
+    leito_codigo: string| null;
+    data_entrada: string;
+}

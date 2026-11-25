@@ -2,6 +2,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import Session
 from models.leito import LeitoDB, StatusLeito
 from models.atendimento import AtendimentoDB, StatusAtendimento
+from models.paciente import PacienteDB
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from models.setor import SetorDB
@@ -223,3 +224,33 @@ def distribuicao_atendimentos_service(db: Session):
 
     
     return distribuicao
+
+
+def atendimentos_recentes_service(db: Session):
+
+    comando = (
+        select(
+            AtendimentoDB.id,
+            PacienteDB.nome.label("paciente_nome"),
+            AtendimentoDB.status,
+            SetorDB.nome.label("setor_nome"),
+            LeitoDB.codigo.label("leito_codigo"),
+            AtendimentoDB.data_entrada
+        ).select_from(AtendimentoDB).join(
+            PacienteDB,
+            AtendimentoDB.paciente_id == PacienteDB.id
+        ).outerjoin(
+            SetorDB,
+            AtendimentoDB.setor_id == SetorDB.id
+        ).outerjoin(
+            LeitoDB,
+            AtendimentoDB.leito_id == LeitoDB.id
+        ).order_by(
+            AtendimentoDB.data_entrada.desc(),
+            AtendimentoDB.id.desc()
+        ).limit(4)
+    )
+
+    resultado = db.execute(comando).mappings().all()
+
+    return resultado

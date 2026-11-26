@@ -20,6 +20,10 @@ from exceptions import (
     AtendimentoAtivoJaExiste,
     AtendimentoNaoEncontrado,
     AtendimentoEncerrado,
+    OcorrenciaNaoEncontrada,
+    OcorrenciaNaoEstaAberta, 
+    OcorrenciaNaoEstaEmResolucao,
+    UsuarioNaoResponsavelPelaOcorrencia
 )
 
 from routes.usuario import router as usuario_router
@@ -219,6 +223,42 @@ def atendimento_encerrado(request: Request, exc: AtendimentoEncerrado):
         status_code=409,
         content={
             "detail": "O atendimento já está encerrado"
+        }
+    )
+
+@app.exception_handler(OcorrenciaNaoEncontrada)
+def ocorrencia_nao_encontrada(request: Request, exc: OcorrenciaNaoEncontrada):
+    return JSONResponse(
+        status_code=404,
+        content={
+            "detail": "Ocorrência não encontrada."
+        }
+    )
+
+@app.exception_handler(OcorrenciaNaoEstaAberta)
+def ocorrencia_nao_aberta(request: Request, exc: OcorrenciaNaoEstaAberta):
+    return JSONResponse(
+        status_code=409,
+        content={
+            "detail": "Somente ocorrências abertas podem ser assumidas."
+        }
+    )
+
+@app.exception_handler(OcorrenciaNaoEstaEmResolucao)
+def ocorrencia_nao_resolucao(request: Request, exc: OcorrenciaNaoEstaEmResolucao):
+    return JSONResponse(
+        status_code=409,
+        content={
+            "detail": "A ocorrencia nao esta em solucão."
+        }
+    )
+
+@app.exception_handler(UsuarioNaoResponsavelPelaOcorrencia)
+def nao_responsavel_ocorrenci(request: Request, exc: UsuarioNaoResponsavelPelaOcorrencia):
+    return JSONResponse(
+        status_code=403,
+        content={
+            "detail": "Usuário não responsável pela ocorrência."
         }
     )
 

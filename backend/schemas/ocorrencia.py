@@ -47,4 +47,12 @@ class ResolverOcorrencia(BaseModel):
     descricao_resolucao: str = Field(min_length=10, max_length=2000)
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ResumoOcorrencia(BaseModel):
+    abertas: int
+    em_resolucao: int
+    criticas_pendentes: int
+    resolvidas_hoje: int
+
     

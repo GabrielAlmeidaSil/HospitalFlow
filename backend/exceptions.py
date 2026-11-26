@@ -51,3 +51,15 @@ class AtendimentoNaoEncontrado(Exception):
 
 class AtendimentoEncerrado(Exception):
     pass
+
+class OcorrenciaNaoEncontrada(Exception):
+    pass
+
+class OcorrenciaNaoEstaAberta(Exception):
+    pass
+
+class OcorrenciaNaoEstaEmResolucao(Exception):
+    pass
+
+class UsuarioNaoResponsavelPelaOcorrencia(Exception):
+    pass

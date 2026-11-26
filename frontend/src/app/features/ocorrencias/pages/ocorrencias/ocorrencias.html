@@ -1,1 +1,204 @@
-<p>ocorrencias works!</p>
+<section>
+
+    <!-- INTRODUÇÃO -->
+    <div class="flex items-center">
+        <i class="pi pi-exclamation-triangle p-2 bg-[#E5F4FD] text-[#046096] text-4xl rounded-xl"></i>
+        <div class="flex flex-col ms-3">
+            <h1 class="text-2xl md:text-3xl font-medium">Ocorrências</h1>
+            <p class="text-gray-500 mt-1">Gerencie os incidentes operacionais, acompanhe prioridades e resoluções em tempo real.</p>
+        </div>
+    </div>
+
+    <!-- CARDS -->
+    <div class="grid grid-cols-2 xl:grid-cols-4 my-6 md:my-10 gap-4">
+        <div class="border rounded-xl border-gray-200">
+            <div class="flex flex-col sm:flex-row p-4 sm:p-6">
+                <div>
+                    <i class="pi pi-clipboard p-2 bg-[#E5F4FD] text-[#046096] text-4xl rounded-xl"></i>
+                </div>
+                <div class="mt-3 sm:mt-0 sm:ms-4">
+                    <h3 class="font-medium">Abertas</h3>
+
+                    <div class="flex items-center gap-3">
+                        <h1 class="font-bold text-4xl mt-2 mb-1"> {{ resumoOcorrencia().abertas }} </h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="border rounded-xl border-gray-200">
+            <div class="flex flex-col sm:flex-row p-4 sm:p-6">
+                <div>
+                    <i class="pi pi-wrench p-2 bg-[#FFEFDC] text-[#DE6D10] text-4xl rounded-xl"></i>
+                </div>
+                <div class="mt-3 sm:mt-0 sm:ms-4">
+                    <h3 class="font-medium">Em Resolução</h3>
+                    <h1 class="font-bold text-4xl mt-2 mb-1"> {{ resumoOcorrencia().em_resolucao }} </h1>
+                </div>
+            </div>
+        </div>
+
+        <div class="border rounded-xl border-gray-200">
+            <div class="flex flex-col sm:flex-row p-4 sm:p-6">
+                <div>
+                    <i class="pi pi-check p-2 bg-[#E7F7EF] text-[#0CA358] text-4xl rounded-xl"></i>
+                </div>
+                <div class="mt-3 sm:mt-0 sm:ms-4">
+                    <h3 class="font-medium">Resolvidas Hoje</h3>
+                    <h1 class="font-bold text-4xl mt-2 mb-1">{{ resumoOcorrencia().resolvidas_hoje }}</h1>
+                </div>
+            </div>
+        </div>
+
+        <div class="border rounded-xl border-gray-200">
+            <div class="flex flex-col sm:flex-row p-4 sm:p-6">
+                <div>
+                    <i class="pi pi-exclamation-triangle p-2 bg-[#FEE7E6] text-[#DF272A] text-4xl rounded-xl"></i>
+                </div>
+                <div class="mt-3 sm:mt-0 sm:ms-4">
+                    <h3 class="font-medium">Críticas Pendentes</h3>
+                    <h1 class="font-bold text-4xl mt-2 mb-1">{{ resumoOcorrencia().criticas_pendentes }}</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="flex flex-wrap items-end gap-4 mb-6">
+        <p-iconfield iconPosition="left" class="flex-1 min-w-56">
+            <p-inputicon class="pi pi-search" />
+            <input type="text" pInputText placeholder="Buscar por título ou descrição..." class="w-full" />
+        </p-iconfield>
+
+        <div class="flex flex-col gap-1 flex-1 min-w-40">
+            <label class="text-sm text-gray-600">Setor</label>
+            <p-select [options]="setorOpcoes" optionLabel="nome" optionValue="valor" placeholder="Todos os setores" [showClear]="true" class="w-full" />
+        </div>
+
+        <div class="flex flex-col gap-1 flex-1 min-w-40">
+            <label class="text-sm text-gray-600">Prioridade</label>
+            <p-select [options]="prioridadeOpcoes" optionLabel="nome" optionValue="valor" placeholder="Todas" class="w-full" />
+        </div>
+
+        <div class="flex flex-col gap-1 flex-1 min-w-40">
+            <label class="text-sm text-gray-600">Status</label>
+            <p-select [options]="statusOpcoes" optionLabel="nome" optionValue="valor" placeholder="Todos" class="w-full" />
+        </div>
+
+        <div class="flex gap-3 w-full sm:w-auto">
+            <p-button label="Atualizar" icon="pi pi-refresh" [outlined]="true" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap text-[#012059] border-[#012059] hover:bg-[#E6F1FC]" />
+            <p-button label="Nova Ocorrência" icon="pi pi-plus" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap bg-[#012059] border-[#012059]" />
+        </div>
+    </div>
+
+    <!-- TABELA -->
+    <div class="border rounded-xl border-gray-200 overflow-hidden">
+        <p-table
+            [value]="ocorrencias"
+            [paginator]="true"
+            [rows]="8"
+            [rowsPerPageOptions]="[8, 16, 24]"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Exibindo {first} a {last} de {totalRecords} ocorrências"
+            [tableStyle]="{ 'min-width': '60rem' }"
+        >
+            <ng-template #header>
+                <tr>
+                    <th class="bg-[#F1F6FC]">Título</th>
+                    <th class="bg-[#F1F6FC]">Setor</th>
+                    <th class="bg-[#F1F6FC]">Prioridade</th>
+                    <th class="bg-[#F1F6FC]">Status</th>
+                    <th class="bg-[#F1F6FC]">Responsável</th>
+                    <th class="bg-[#F1F6FC]">Abertura</th>
+                    <th class="bg-[#F1F6FC] text-center">Ações</th>
+                </tr>
+            </ng-template>
+
+            <ng-template #emptymessage>
+                <tr>
+                    <td colspan="7" class="text-center py-10 text-gray-500">Nenhuma ocorrência encontrada.</td>
+                </tr>
+            </ng-template>
+
+            <ng-template #body let-ocorrencia>
+                <tr>
+                    <td class="font-semibold">{{ ocorrencia.titulo }}</td>
+
+                    <td class="whitespace-nowrap">
+                        <i class="pi pi-building text-gray-500 me-2"></i>{{ ocorrencia.setor }}
+                    </td>
+
+                    <td>
+                        @switch (ocorrencia.prioridade) {
+                            @case ('critica') {
+                                <span class="bg-[#FEE7E6] text-[#DF272A] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap">
+                                    <i class="pi pi-circle-fill text-[0.5rem] me-1"></i>
+                                    Crítica
+                                </span>
+                            }
+                            @case ('alta') {
+                                <span class="bg-[#FFEFDC] text-[#DE6D10] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap">
+                                    <i class="pi pi-circle-fill text-[0.5rem] me-1"></i>
+                                    Alta
+                                </span>
+                            }
+                            @case ('media') {
+                                <span class="bg-[#FEF2DC] text-[#E59930] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap">
+                                    <i class="pi pi-circle-fill text-[0.5rem] me-1"></i>
+                                    Média
+                                </span>
+                            }
+                            @case ('baixa') {
+                                <span class="bg-[#E7F7EF] text-[#0CA358] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap">
+                                    <i class="pi pi-circle-fill text-[0.5rem] me-1"></i>
+                                    Baixa
+                                </span>
+                            }
+                        }
+                    </td>
+
+                    <td>
+                        @switch (ocorrencia.status) {
+                            @case ('aberta') {
+                                <span class="bg-[#E5F4FD] text-[#046096] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap">
+                                    <i class="pi pi-circle-fill text-[0.5rem] me-1"></i>
+                                    Aberta
+                                </span>
+                            }
+                            @case ('em_resolucao') {
+                                <span class="bg-[#FFEFDC] text-[#DE6D10] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap">
+                                    <i class="pi pi-circle-fill text-[0.5rem] me-1"></i>
+                                    Em resolução
+                                </span>
+                            }
+                            @case ('resolvida') {
+                                <span class="bg-[#E7F7EF] text-[#0CA358] text-sm font-semibold rounded-full px-2.5 py-1 whitespace-nowrap">
+                                    <i class="pi pi-circle-fill text-[0.5rem] me-1"></i>
+                                    Resolvida
+                                </span>
+                            }
+                        }
+                    </td>
+
+                    <td>{{ ocorrencia.responsavel ?? '—' }}</td>
+
+                    <td class="text-gray-600 whitespace-nowrap">{{ ocorrencia.data_abertura | date:'dd/MM/yyyy HH:mm' }}</td>
+
+                    <td>
+                        <div class="flex justify-center gap-2">
+                            <p-button icon="pi pi-eye" [outlined]="true" size="small" />
+
+                            @if (ocorrencia.status === 'aberta') {
+                                <p-button icon="pi pi-user" [outlined]="true" size="small" />
+                            }
+
+                            @if (ocorrencia.status === 'em_resolucao') {
+                                <p-button icon="pi pi-check" severity="success" [outlined]="true" size="small" />
+                            }
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</section>

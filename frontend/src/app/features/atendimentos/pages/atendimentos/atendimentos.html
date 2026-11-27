@@ -588,24 +588,17 @@
     <div
         class="border rounded-xl border-gray-200 overflow-hidden"
     >
-        <p-table
+        <p-table 
             [value]="atendimentos()"
-
             [loading]="carregando()"
-
             [paginator]="true"
-
             [rows]="8"
-
             [rowsPerPageOptions]="[8, 16, 24]"
-
             [showCurrentPageReport]="true"
-
             currentPageReportTemplate="
                 Exibindo {first} a {last}
                 de {totalRecords} atendimentos
             "
-
             [tableStyle]="{
                 'min-width': '70rem'
             }"

@@ -1,4 +1,142 @@
 <section>
+    <p-toast />
+
+    <!-- MODAL NOVA OCORRÊNCIA -->
+    <p-dialog header="Nova Ocorrência" [modal]="true" [(visible)]="visibleNova" [style]="{ width: '90vw', maxWidth: '32rem' }">
+        <form [formGroup]="formNova" (ngSubmit)="salvarNova()">
+            <span class="block mb-8">Registre um novo incidente operacional</span>
+
+            <div class="flex flex-col gap-1 mb-4">
+                <label class="font-semibold">Título</label>
+                <input type="text" pInputText formControlName="titulo" placeholder="Ex: Falha no monitor do leito 3" class="w-full" />
+                @if (formNova.controls.titulo.invalid && formNova.controls.titulo.touched) {
+                    <small class="text-red-500">Informe um título entre 5 e 120 caracteres.</small>
+                }
+            </div>
+
+            <div class="flex flex-col gap-1 mb-4">
+                <label class="font-semibold">Descrição</label>
+                <textarea pTextarea formControlName="descricao" rows="4" placeholder="Descreva o que aconteceu..." class="w-full resize-none"></textarea>
+                @if (formNova.controls.descricao.invalid && formNova.controls.descricao.touched) {
+                    <small class="text-red-500">Informe uma descrição com pelo menos 10 caracteres.</small>
+                }
+            </div>
+
+            <div class="flex flex-col gap-1 mb-4">
+                <label class="font-semibold">Prioridade</label>
+                <p-select formControlName="prioridade" [options]="prioridadesNova" optionLabel="nome" optionValue="valor" placeholder="Selecione a prioridade" appendTo="body" class="w-full" />
+                @if (formNova.controls.prioridade.invalid && formNova.controls.prioridade.touched) {
+                    <small class="text-red-500">Selecione a prioridade.</small>
+                }
+            </div>
+
+            <div class="flex flex-col gap-1 mb-8">
+                <label class="font-semibold">Setor</label>
+                <p-select formControlName="setor_id" [options]="setores()" optionLabel="nome" optionValue="id" placeholder="Selecione um setor" appendTo="body" class="w-full" />
+                @if (formNova.controls.setor_id.invalid && formNova.controls.setor_id.touched) {
+                    <small class="text-red-500">Selecione o setor.</small>
+                }
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <p-button label="Cancelar" severity="secondary" type="button" (onClick)="visibleNova = false" />
+                <p-button label="Salvar" type="submit" styleClass="bg-[#012059] border-[#012059]" />
+            </div>
+        </form>
+    </p-dialog>
+
+    <!-- MODAL DETALHES -->
+    <p-dialog header="Detalhes da Ocorrência" [modal]="true" [(visible)]="visibleDetalhes" [style]="{ width: '90vw', maxWidth: '32rem' }">
+        @if (ocorrenciaSelecionada(); as ocorrencia) {
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <p class="text-sm text-gray-500">Título</p>
+                    <p class="font-semibold">{{ ocorrencia.titulo }}</p>
+                </div>
+
+                <div class="col-span-2">
+                    <p class="text-sm text-gray-500">Descrição</p>
+                    <p class="whitespace-pre-line">{{ ocorrencia.descricao }}</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Setor</p>
+                    <p>{{ ocorrencia.setor.nome }}</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Prioridade</p>
+                    @switch (ocorrencia.prioridade) {
+                        @case ('critica') { <p>Crítica</p> }
+                        @case ('alta') { <p>Alta</p> }
+                        @case ('media') { <p>Média</p> }
+                        @case ('baixa') { <p>Baixa</p> }
+                    }
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Status</p>
+                    @switch (ocorrencia.status) {
+                        @case ('aberta') { <p>Aberta</p> }
+                        @case ('em_resolucao') { <p>Em resolução</p> }
+                        @case ('resolvida') { <p>Resolvida</p> }
+                    }
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Criado por</p>
+                    <p>{{ ocorrencia.criado_por.nome }}</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Responsável</p>
+                    <p>{{ ocorrencia.responsavel?.nome ?? '—' }}</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Abertura</p>
+                    <p>{{ ocorrencia.data_abertura | date:'dd/MM/yyyy HH:mm' }}</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Início da resolução</p>
+                    <p>{{ (ocorrencia.data_inicio_resolucao | date:'dd/MM/yyyy HH:mm') ?? '—' }}</p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Resolvida em</p>
+                    <p>{{ (ocorrencia.data_resolucao | date:'dd/MM/yyyy HH:mm') ?? '—' }}</p>
+                </div>
+
+                @if (ocorrencia.descricao_resolucao) {
+                    <div class="col-span-2">
+                        <p class="text-sm text-gray-500">Descrição da resolução</p>
+                        <p class="whitespace-pre-line">{{ ocorrencia.descricao_resolucao }}</p>
+                    </div>
+                }
+            </div>
+        }
+    </p-dialog>
+
+    <!-- MODAL RESOLVER -->
+    <p-dialog header="Resolver Ocorrência" [modal]="true" [(visible)]="visibleResolver" [style]="{ width: '90vw', maxWidth: '32rem' }">
+        <form [formGroup]="formResolver" (ngSubmit)="salvarResolver()">
+            <span class="block mb-8">Descreva como a ocorrência <b>{{ ocorrenciaSelecionada()?.titulo }}</b> foi resolvida</span>
+
+            <div class="flex flex-col gap-1 mb-8">
+                <label class="font-semibold">Descrição da resolução</label>
+                <textarea pTextarea formControlName="descricao_resolucao" rows="4" placeholder="Ex: Equipamento substituído e testado" class="w-full resize-none"></textarea>
+                @if (formResolver.controls.descricao_resolucao.invalid && formResolver.controls.descricao_resolucao.touched) {
+                    <small class="text-red-500">Informe uma descrição com pelo menos 10 caracteres.</small>
+                }
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <p-button label="Cancelar" severity="secondary" type="button" (onClick)="visibleResolver = false" />
+                <p-button label="Resolver" type="submit" severity="success" />
+            </div>
+        </form>
+    </p-dialog>
 
     <!-- INTRODUÇÃO -->
     <div class="flex items-center">
@@ -67,34 +205,35 @@
     <div class="flex flex-wrap items-end gap-4 mb-6">
         <p-iconfield iconPosition="left" class="flex-1 min-w-56">
             <p-inputicon class="pi pi-search" />
-            <input type="text" pInputText placeholder="Buscar por título ou descrição..." class="w-full" />
+            <input type="text" pInputText placeholder="Buscar por título ou descrição..." class="w-full" [ngModel]="busca()" (ngModelChange)="busca.set($event)" (keyup.enter)="carregarTabela()" />
         </p-iconfield>
 
         <div class="flex flex-col gap-1 flex-1 min-w-40">
             <label class="text-sm text-gray-600">Setor</label>
-            <p-select [options]="setorOpcoes" optionLabel="nome" optionValue="valor" placeholder="Todos os setores" [showClear]="true" class="w-full" />
+            <p-select [options]="setores()" optionLabel="nome" optionValue="id" [ngModel]="setorSelecionado()" (ngModelChange)="setorSelecionado.set($event); carregarTabela()" placeholder="Todos os setores" [showClear]="true" class="w-full" />
         </div>
 
         <div class="flex flex-col gap-1 flex-1 min-w-40">
             <label class="text-sm text-gray-600">Prioridade</label>
-            <p-select [options]="prioridadeOpcoes" optionLabel="nome" optionValue="valor" placeholder="Todas" class="w-full" />
+            <p-select [options]="prioridadeOpcoes" optionLabel="nome" optionValue="valor" [ngModel]="prioridadeSelecionada()" (ngModelChange)="prioridadeSelecionada.set($event); carregarTabela()" placeholder="Todas" class="w-full" />
         </div>
 
         <div class="flex flex-col gap-1 flex-1 min-w-40">
             <label class="text-sm text-gray-600">Status</label>
-            <p-select [options]="statusOpcoes" optionLabel="nome" optionValue="valor" placeholder="Todos" class="w-full" />
+            <p-select [options]="statusOpcoes" optionLabel="nome" optionValue="valor" [ngModel]="statusSelecionado()" (ngModelChange)="statusSelecionado.set($event); carregarTabela()" placeholder="Todos" class="w-full" />
         </div>
 
         <div class="flex gap-3 w-full sm:w-auto">
-            <p-button label="Atualizar" icon="pi pi-refresh" [outlined]="true" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap text-[#012059] border-[#012059] hover:bg-[#E6F1FC]" />
-            <p-button label="Nova Ocorrência" icon="pi pi-plus" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap bg-[#012059] border-[#012059]" />
+            <p-button label="Atualizar" icon="pi pi-refresh" [outlined]="true" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap text-[#012059] border-[#012059] hover:bg-[#E6F1FC]" (onClick)="atualizarDados()" />
+            <p-button label="Nova Ocorrência" icon="pi pi-plus" class="flex-1 sm:flex-none" styleClass="w-full whitespace-nowrap bg-[#012059] border-[#012059]" (onClick)="abrirNova()" />
         </div>
     </div>
 
     <!-- TABELA -->
     <div class="border rounded-xl border-gray-200 overflow-hidden">
         <p-table
-            [value]="ocorrencias"
+            [value]="ocorrencias()"
+            [loading]="carregando()"
             [paginator]="true"
             [rows]="8"
             [rowsPerPageOptions]="[8, 16, 24]"
@@ -125,7 +264,7 @@
                     <td class="font-semibold">{{ ocorrencia.titulo }}</td>
 
                     <td class="whitespace-nowrap">
-                        <i class="pi pi-building text-gray-500 me-2"></i>{{ ocorrencia.setor }}
+                        <i class="pi pi-building text-gray-500 me-2"></i>{{ ocorrencia.setor.nome }}
                     </td>
 
                     <td>
@@ -180,20 +319,20 @@
                         }
                     </td>
 
-                    <td>{{ ocorrencia.responsavel ?? '—' }}</td>
+                    <td>{{ ocorrencia.responsavel?.nome ?? '—' }}</td>
 
                     <td class="text-gray-600 whitespace-nowrap">{{ ocorrencia.data_abertura | date:'dd/MM/yyyy HH:mm' }}</td>
 
                     <td>
                         <div class="flex justify-center gap-2">
-                            <p-button icon="pi pi-eye" [outlined]="true" size="small" />
+                            <p-button icon="pi pi-eye" [outlined]="true" size="small" (onClick)="abrirDetalhes(ocorrencia)" />
 
                             @if (ocorrencia.status === 'aberta') {
-                                <p-button icon="pi pi-user" [outlined]="true" size="small" />
+                                <p-button icon="pi pi-user" [outlined]="true" size="small" (onClick)="assumirOcorrencia(ocorrencia)" />
                             }
 
                             @if (ocorrencia.status === 'em_resolucao') {
-                                <p-button icon="pi pi-check" severity="success" [outlined]="true" size="small" />
+                                <p-button icon="pi pi-check" severity="success" [outlined]="true" size="small" (onClick)="abrirResolver(ocorrencia)" />
                             }
                         </div>
                     </td>

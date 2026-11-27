@@ -87,14 +87,11 @@ export class Atendimentos implements OnInit {
   // FILTROS
   busca = signal('');
 
-  statusSelecionado =
-    signal<StatusAtendimento | null>(null);
+  statusSelecionado = signal<StatusAtendimento | null>(null);
 
-  setorSelecionado =
-    signal<number | null>(null);
+  setorSelecionado = signal<number | null>(null);
 
-  situacaoSelecionada =
-    signal<boolean | null>(null);
+  situacaoSelecionada = signal<boolean | null>(null);
 
 
   // OPÇÕES STATUS
